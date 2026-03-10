@@ -21,14 +21,20 @@
 
 #### 1. Waktu Praktikum
 
-**Kelas C**  
-Jam ke-5 (11.10 – 12.00), Hari Rabu
+- **Kelas C**  
+  Jam ke-5 (11.10 – 12.00), Hari Rabu
+  <br>
+  Kode Classroom : [zzqpjnjn](https://classroom.google.com/c/ODUwNzYxNTA3OTQ1?cjc=zzqpjnjn)
 
-**Kelas D**  
-Jam ke-4 (10.15 – 11.05), Hari Rabu
+- **Kelas D**  
+  Jam ke-4 (10.15 – 11.05), Hari Rabu
+  <br>
+  Kode Classroom : [o7xdqevo](https://classroom.google.com/c/ODUwNzYxNDUzMjIw?cjc=o7xdqevo)
 
-**PSDKU Kelas A**  
-Jam ke-1 (07.30 – 08.20), Hari Kamis
+- **PSDKU Kelas A**  
+  Jam ke-1 (07.30 – 08.20), Hari Kamis
+  <br>
+  Kode Classroom : [4y6qh5mm](https://classroom.google.com/c/ODUwNzYyNTM2MDM5?cjc=4y6qh5mm)
 
 #### 2. Aturan Praktikum
 
