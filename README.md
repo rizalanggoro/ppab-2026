@@ -17,11 +17,53 @@
 13. [Work Manager + CI/CD](./week-13/materi.md)
 14. Responsi 2
 
+### Kontrak Praktikum
+
+#### 1. Waktu Praktikum
+
+**Kelas C**  
+Jam ke-5 (11.10 – 12.00), Hari Rabu
+
+**Kelas D**  
+Jam ke-4 (10.15 – 11.05), Hari Rabu
+
+**PSDKU Kelas A**  
+Jam ke-1 (07.30 – 08.20), Hari Kamis
+
+#### 2. Aturan Praktikum
+
+- Mahasiswa **wajib mengerjakan tugas secara mandiri** dan **tidak diperbolehkan titip absen**
+- Diperbolehkan menggunakan **GPT, Gemini, atau tools AI lainnya**, selama tidak hanya melakukan _copy–paste_ tanpa memahami kode yang digunakan
+- **Dilarang menyalin (copy–paste) coding milik teman**. Apabila terdeteksi melakukan plagiarisme, akan dikenakan **pengurangan nilai sebesar 25–40 poin**
+- **Dilarang menyalin kode dari repository GitHub orang lain dan dikumpulkan sebagai tugas**. Namun boleh, jika digunakan sebagai bahan pembelajaran
+- **Keterlambatan pengumpulan tugas** akan dikenakan **pengurangan nilai sebesar 1 poin per hari**
+
+#### 3. Ketentuan Tugas
+
+Tugas yang diberikan berupa:
+
+- **Video penjelasan aplikasi** (saat aplikasi dijalankan dan kalau mau nilai lebih bagus, bisa menjelaskan semua detail program di video). Pengumpulan video berupa link yt
+- **Laporan penjelasan kode**
+
+##### Ketentuan laporan
+
+- Format laporan **bebas** (tidak wajib menggunakan cover).
+- Laporan harus menjelaskan **alur kode, penjelasana secara menyeluruh untuk codenya, serta fungsi setiap bagian program**.
+
+##### Penilaian didasarkan pada:
+
+- **Kejelasan dalam menjelaskan kode**
+- **Kreativitas dalam mengimplementasikan program**
+- **Pengembangan fitur pada aplikasi**
+
 ### Asisten Praktikum
 
 - Kelas C
   1. [Reni Uswatun Hasanah](https://github.com/reniuswatun)
   2. [Rizal Dwi Anggoro](https://github.com/rizalanggoro)
 - Kelas D
+  1. [Reni Uswatun Hasanah](https://github.com/reniuswatun)
+  2. [Rizal Dwi Anggoro](https://github.com/rizalanggoro)
+- Kelas A PSDKU Kebumen
   1. [Reni Uswatun Hasanah](https://github.com/reniuswatun)
   2. [Rizal Dwi Anggoro](https://github.com/rizalanggoro)
