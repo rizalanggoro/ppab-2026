@@ -38,18 +38,18 @@
 
 #### 2. Aturan Praktikum
 
-- Mahasiswa **wajib mengerjakan tugas secara mandiri** dan **tidak diperbolehkan titip absen**
-- Diperbolehkan menggunakan **GPT, Gemini, atau tools AI lainnya**, selama tidak hanya melakukan _copy–paste_ tanpa memahami kode yang digunakan
-- **Dilarang menyalin (copy–paste) coding milik teman**. Apabila terdeteksi melakukan plagiarisme, akan dikenakan **pengurangan nilai sebesar 25–40 poin**
-- **Dilarang menyalin kode dari repository GitHub orang lain dan dikumpulkan sebagai tugas**. Namun boleh, jika digunakan sebagai bahan pembelajaran
-- **Keterlambatan pengumpulan tugas** akan dikenakan **pengurangan nilai sebesar 1 poin per hari**
+- Mahasiswa **wajib mengerjakan tugas secara mandiri** dan **tidak diperbolehkan titip absen**.
+- Diperbolehkan menggunakan **GPT, Gemini, atau tools AI lainnya**, selama tidak hanya melakukan _copy–paste_ tanpa memahami kode yang digunakan.
+- **Dilarang menyalin (copy–paste) coding milik teman**. Apabila terdeteksi melakukan plagiarisme, akan dikenakan **pengurangan nilai sebesar 25–40 poin**.
+- **Dilarang menyalin kode dari repository GitHub orang lain dan dikumpulkan sebagai tugas**. Namun boleh, jika digunakan sebagai bahan pembelajaran.
+- **Keterlambatan pengumpulan tugas** akan dikenakan **pengurangan nilai sebesar 1 poin per hari**.
 
 #### 3. Ketentuan Tugas
 
 Tugas yang diberikan berupa:
 
-- **Video penjelasan aplikasi** (saat aplikasi dijalankan dan kalau mau nilai lebih bagus, bisa menjelaskan semua detail program di video). Pengumpulan video berupa link yt
-- **Laporan penjelasan kode**
+- **Video penjelasan aplikasi** (saat aplikasi dijalankan dan kalau mau nilai lebih bagus, bisa menjelaskan semua detail program di video). Pengumpulan video berupa link yt.
+- **Laporan penjelasan kode**.
 
 ##### Ketentuan laporan
 
