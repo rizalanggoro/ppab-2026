@@ -160,7 +160,7 @@ val isOpen = if (now >= cafeOpen && now <= cafeClosed){
 print("Cafe is open : $isOpen")
 
 /*
-    Output : Cafe is open : false
+    Output : Cafe is open : true
  */
 ```
 
