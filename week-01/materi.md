@@ -177,7 +177,7 @@ val isClose = now < cafeOpen || now > cafeClosed
 
 print("Cafe is closed : $isClose")
 /*
-     Output : Cafe is closed : true
+     Output : Cafe is closed : false
  */
 ```
 
