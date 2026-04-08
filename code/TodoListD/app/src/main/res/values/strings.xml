@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Todo List D</string>
+    <string name="title_activity_create_todo">CreateTodoActivity</string>
+    <string name="title_activity_detail_todo">DetailTodoActivity</string>
+</resources>
