@@ -1,7 +1,5 @@
 # Compose Navigation
 
----
-
 ## Evolusi Navigasi di Android
 
 Di ekosistem Android, cara perpindahan antar layar (_screen routing_) telah berkembang melalui tiga generasi:
@@ -68,8 +66,6 @@ Developer memegang kendali penuh atas _back stack_. Tumpukan layar hanyalah sebu
 
 > Referensi resmi: https://developer.android.com/guide/navigation/navigation-3?hl=id
 
----
-
 ## Praktikum: Implementasi Navigation 3
 
 Langkah-langkah menerapkan Navigation 3 ke dalam proyek aplikasi _ToDo List_.
@@ -77,8 +73,6 @@ Langkah-langkah menerapkan Navigation 3 ke dalam proyek aplikasi _ToDo List_.
 > **Gambaran alurnya:**
 > `backStack` (List) → didengarkan oleh `NavDisplay` → menampilkan layar yang sesuai.
 > Navigasi = memanipulasi list. Sesederhana itu.
-
----
 
 ### Langkah 1 — Setup Dependency
 

@@ -1,7 +1,5 @@
 # Compose Navigation
 
----
-
 ## Evolusi Navigasi di Android
 
 Di ekosistem Android, evolusi cara perpindahan antar layar (screen routing) umumnya dibagi ke dalam tiga fase atau generasi:
@@ -52,8 +50,6 @@ _Developer_ memegang kendali penuh atas _back stack_. Tumpukan layar di sini han
 Sangat transparan, mudah diuji (_testable_), dan membuat pembuatan animasi transisi antar layar atau membagi layar (_adaptive layouts_) menjadi jauh lebih sederhana.
 
 > Referensi: https://developer.android.com/guide/navigation/navigation-3?hl=id
-
----
 
 ## Praktikum: Implementasi Navigation 3
 
