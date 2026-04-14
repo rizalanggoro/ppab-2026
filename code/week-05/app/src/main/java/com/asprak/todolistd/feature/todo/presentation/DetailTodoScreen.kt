@@ -20,15 +20,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.asprak.todolistd.core.LocalBackStack
 import com.asprak.todolistd.ui.theme.TodoListTheme
 
 @Composable
-fun DetailTodoScreen() {
+fun DetailTodoScreen(
+    id: String = ""
+) {
+    val backStack = LocalBackStack.current
 
+    Content(
+        id = id,
+        onClickBack = {
+            backStack.removeLastOrNull()
+        }
+    )
 }
 
 @Composable
 private fun Content(
+    id: String = "",
     isLoading: Boolean = false,
     onClickBack: () -> Unit = {}
 ) {
@@ -76,6 +87,7 @@ private fun Content(
             ) {
                 Text("Todo title", style = MaterialTheme.typography.titleMedium)
                 Text("Todo detail", style = MaterialTheme.typography.bodyMedium)
+                Text("id: $id", style = MaterialTheme.typography.labelMedium)
             }
         }
     }

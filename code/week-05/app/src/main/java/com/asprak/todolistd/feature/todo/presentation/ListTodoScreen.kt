@@ -1,5 +1,6 @@
 package com.asprak.todolistd.feature.todo.presentation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,15 +28,28 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.asprak.todolistd.core.LocalBackStack
+import com.asprak.todolistd.core.Routes
 
 @Composable
 fun ListTodoScreen() {
-    Content()
+    val backStack = LocalBackStack.current
+
+    Content(
+        onClickCreate = {
+            backStack.add(Routes.CreateTodoRoute)
+        },
+        onClickTodo = {
+            backStack.add(Routes.DetailTodoRoute("todo-id-$it"))
+        }
+    )
 }
 
 @Composable
 private fun Content(
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
+    onClickCreate: () -> Unit = {},
+    onClickTodo: (Int) -> Unit = {}
 ) {
     Scaffold(
         topBar = {
@@ -44,7 +58,7 @@ private fun Content(
                     Text("Todo")
                 },
                 actions = {
-                    IconButton(onClick = {}) {
+                    IconButton(onClick = onClickCreate) {
                         Icon(
                             Icons.Rounded.Refresh,
                             contentDescription = null
@@ -55,7 +69,7 @@ private fun Content(
         },
         floatingActionButton = {
             when (isLoading) {
-                true -> Box {}
+                true -> Unit
                 else -> FloatingActionButton(
                     onClick = {
                     }
@@ -98,7 +112,7 @@ private fun Content(
                 }
 
                 LazyColumn(modifier = Modifier.weight(1f)) {
-                    items(3) {
+                    items(3) { index ->
                         ListItem(
                             leadingContent = {
                                 Checkbox(checked = false, onCheckedChange = null)
@@ -119,6 +133,9 @@ private fun Content(
                                     )
                                     Text("12 Juni 2022")
                                 }
+                            },
+                            modifier = Modifier.clickable {
+                                onClickTodo(index)
                             }
                         )
                     }

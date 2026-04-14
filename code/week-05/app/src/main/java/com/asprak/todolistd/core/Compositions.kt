@@ -5,5 +5,5 @@ import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
 
 val LocalBackStack = compositionLocalOf<NavBackStack<NavKey>> {
-    error("")
+    error("error: LocalBackStack not provided")
 }

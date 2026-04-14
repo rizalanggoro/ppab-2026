@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ContainedLoadingIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -17,11 +16,22 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.asprak.todolistd.core.LocalBackStack
+import com.asprak.todolistd.core.Routes
 import com.asprak.todolistd.ui.theme.TodoListTheme
 
 @Composable
 fun AuthScreen() {
-    Content()
+    val backStack = LocalBackStack.current
+
+    Content(
+        onClickSubmit = {
+            backStack.add(Routes.ListTodoRoute)
+
+            // jika ingin menghapus route sebelumnya
+            backStack.removeFirstOrNull()
+        }
+    )
 }
 
 @Composable
