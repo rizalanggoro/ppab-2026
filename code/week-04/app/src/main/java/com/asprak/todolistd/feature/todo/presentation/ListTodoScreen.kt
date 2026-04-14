@@ -76,11 +76,26 @@ private fun Content(
             }
 
             false -> Column(modifier = Modifier.padding(it)) {
-                FilterChip(
-                    selected = false,
-                    onClick = {},
-                    label = { Text("Semua") }
-                )
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = false,
+                        onClick = {},
+                        label = { Text("Semua") }
+                    )
+                    FilterChip(
+                        selected = false,
+                        onClick = {},
+                        label = { Text("Belum selesai") }
+                    )
+                    FilterChip(
+                        selected = false,
+                        onClick = {},
+                        label = { Text("Selesai") }
+                    )
+                }
 
                 LazyColumn(modifier = Modifier.weight(1f)) {
                     items(3) {

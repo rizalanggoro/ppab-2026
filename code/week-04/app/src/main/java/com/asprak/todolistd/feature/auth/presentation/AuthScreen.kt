@@ -24,7 +24,6 @@ fun AuthScreen() {
     Content()
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun Content(
     isLogin: Boolean = true,
