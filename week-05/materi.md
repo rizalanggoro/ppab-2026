@@ -1,6 +1,6 @@
-ref: https://developer.android.com/guide/navigation/navigation-3?hl=id
+Referensi: https://developer.android.com/guide/navigation/navigation-3?hl=id
 
-tambahkan beberapa deps yang diperlukan ke file toml
+Tambahkan beberapa dependency yang diperlukan ke file TOML berikut untuk mendukung fitur Navigation 3 dan proses serialisasi data pada aplikasi.
 
 ```toml
 [versions]
@@ -25,7 +25,7 @@ androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.
 jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization"}
 ```
 
-ubah build gradle di `app/build.gradle.kts`
+Tambahkan plugin dan dependency berikut ke file `app/build.gradle.kts`:
 
 ```kts
 plugins {
@@ -44,7 +44,7 @@ dependencies {
 }
 ```
 
-buat daftar routes di file `core/Routes.kt`
+Selanjutnya, buat daftar routes di file `core/Routes.kt`. File ini berfungsi untuk mendefinisikan semua rute (halaman) yang akan digunakan dalam navigasi aplikasi. Setiap route dapat berupa data object (jika tidak membutuhkan parameter) atau data class (jika membutuhkan parameter).
 
 ```kt
 import androidx.navigation3.runtime.NavKey
@@ -68,9 +68,7 @@ object Routes {
 }
 ```
 
-gunakan data object jika route tidak menerima parameter. dan gunakan data class jika route dapat menerima parameter.
-
-buat endpoint utama dari compose application di `core/ComposeApp.kt`
+Selanjutnya, buat endpoint utama aplikasi Compose di file `core/ComposeApp.kt`. Endpoint ini berfungsi sebagai titik awal aplikasi, yang akan mengatur navigasi dan menampilkan tampilan utama menggunakan Navigation 3.
 
 ```kt
 import androidx.compose.runtime.Composable
@@ -102,7 +100,7 @@ fun ComposeApp() {
 }
 ```
 
-lakukan perubahan pada `MainActivity.kt` agar mengarah ke compose app
+Ubah file `MainActivity.kt` agar menjalankan aplikasi berbasis Compose yang telah dibuat.
 
 ```kt
 import android.os.Bundle
@@ -122,7 +120,7 @@ class MainActivity : ComponentActivity() {
 }
 ```
 
-daftarkan setiap screen dengan routes di file `core/ComposeApp.kt`
+Daftarkan setiap screen (halaman) pada aplikasi dengan routes yang telah dibuat di file `core/ComposeApp.kt`. Dengan demikian, setiap route akan terhubung ke composable screen yang sesuai.
 
 ```kt
 entryProvider = entryProvider {
@@ -136,7 +134,7 @@ entryProvider = entryProvider {
 }
 ```
 
-untuk mempermudah proses navigasi ke depannya, tambahkan composition di `core/Compositions.kt`
+Agar proses navigasi antar screen lebih mudah dan terpusat, tambahkan composition di file `core/Compositions.kt`. Dengan cara ini, backStack dapat diakses dari mana saja di dalam composable.
 
 ```kt
 import androidx.compose.runtime.compositionLocalOf
@@ -148,7 +146,7 @@ val LocalBackStack = compositionLocalOf<NavBackStack<NavKey>> {
 }
 ```
 
-selanjutnya, ubah endpoint compose app `core/ComposeApp.kt` agar mem-provide backstack sebagai berikut
+Setelah menambahkan composition, update fungsi ComposeApp di `core/ComposeApp.kt` agar mem-provide backStack ke seluruh composable.
 
 ```kt
 import androidx.compose.runtime.Composable
@@ -193,7 +191,7 @@ fun ComposeApp() {
 }
 ```
 
-karena sudah menggunakan composition, untuk melakukan perpindahan screen. dapat dilakukan dengan mudah seperti kode pada file `feature/auth/presentation/AuthScreen.kt`
+Setelah menggunakan composition, perpindahan antar screen dapat dilakukan dengan mudah menggunakan LocalBackStack. Contoh implementasi pada file `feature/auth/presentation/AuthScreen.kt`:
 
 ```kt
 @Composable
@@ -208,7 +206,7 @@ fun AuthScreen() {
 }
 ```
 
-untuk navigasi dengan parameter, dapat dilihat pada contoh file `feature/todo/presentation/ListTodoScreen.kt`
+Untuk melakukan navigasi ke screen lain dengan membawa parameter, gunakan pola berikut. Contoh implementasi dapat dilihat pada file `feature/todo/presentation/ListTodoScreen.kt`:
 
 ```kt
 @Composable
@@ -226,7 +224,7 @@ fun ListTodoScreen() {
 }
 ```
 
-untuk kembali ke halaman sebelumnya, dapat dilakukan dengan cara berikut
+Untuk kembali ke halaman sebelumnya (pop back stack), gunakan kode berikut pada screen yang diinginkan. Contoh implementasi:
 
 ```kt
 @Composable
@@ -241,7 +239,7 @@ fun DetailTodoScreen() {
 }
 ```
 
-untuk mendapatkan params dari navigasi, dapat dilakukan dengan memodifikasi file `ComposeApp.kt` sebagai berikut
+Untuk mengambil parameter yang dikirim melalui navigasi (misal id pada DetailTodoRoute), modifikasi entry pada `ComposeApp.kt` seperti berikut:
 
 ```kt
 entry<Routes.DetailTodoRoute> {
