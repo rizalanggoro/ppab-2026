@@ -1,5 +1,6 @@
 package com.asprak.todolistd.core
 
+import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -19,28 +20,30 @@ fun ComposeApp() {
 
     CompositionLocalProvider(LocalBackStack provides backStack) {
         TodoListTheme {
-            NavDisplay(
-                backStack = backStack,
-                entryDecorators = listOf(
-                    // Add the default decorators for managing scenes and saving state
-                    rememberSaveableStateHolderNavEntryDecorator(),
-                    // Then add the view model store decorator
-                    rememberViewModelStoreNavEntryDecorator()
-                ),
-                entryProvider = entryProvider {
-                    // auth
-                    entry<Routes.AuthRoute> { AuthScreen() }
+            Surface {
+                NavDisplay(
+                    backStack = backStack,
+                    entryDecorators = listOf(
+                        // Add the default decorators for managing scenes and saving state
+                        rememberSaveableStateHolderNavEntryDecorator(),
+                        // Then add the view model store decorator
+                        rememberViewModelStoreNavEntryDecorator()
+                    ),
+                    entryProvider = entryProvider {
+                        // auth
+                        entry<Routes.AuthRoute> { AuthScreen() }
 
-                    // todo
-                    entry<Routes.ListTodoRoute> { ListTodoScreen() }
-                    entry<Routes.CreateTodoRoute> { CreateTodoScreen() }
-                    entry<Routes.DetailTodoRoute> {
-                        val id = it.id
+                        // todo
+                        entry<Routes.ListTodoRoute> { ListTodoScreen() }
+                        entry<Routes.CreateTodoRoute> { CreateTodoScreen() }
+                        entry<Routes.DetailTodoRoute> {
+                            val id = it.id
 
-                        DetailTodoScreen(id = id)
+                            DetailTodoScreen(id = id)
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 }
