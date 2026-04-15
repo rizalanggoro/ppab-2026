@@ -1,6 +1,63 @@
-Referensi: https://developer.android.com/guide/navigation/navigation-3?hl=id
+# Compose Navigation
 
-Tambahkan beberapa dependency yang diperlukan ke file TOML berikut untuk mendukung fitur Navigation 3 dan proses serialisasi data pada aplikasi.
+## Evolusi Navigasi di Android
+
+Di ekosistem Android, evolusi cara perpindahan antar layar (screen routing) umumnya dibagi ke dalam tiga fase atau generasi:
+
+### 1. Navigation 1 (Era Klasik)
+
+Ini adalah cara "jadul" sebelum Google merilis arsitektur standar. Di era ini, navigasi antar layar masih dilakukan serba manual.
+
+**Gimana cara kerjanya?**
+
+- Untuk pindah ke layar penuh yang baru, digunakan `Intent` untuk memanggil `Activity`.
+- Kalau hanya ingin mengganti sebagian isi layar, komponen yang dipakai adalah `FragmentManager` dan `FragmentTransaction`.
+
+**Kenapa sekarang mulai ditinggalkan?**
+Pendekatannya sangat _imperatif_ (sistem harus diperintah langkah demi langkah). Efeknya:
+
+1. Kodenya menjadi sangat panjang (_boilerplate_).
+2. Rawan _crash_ (biasanya karena masalah _state loss_).
+3. Membingungkan saat harus melacak tumpukan riwayat layar (_back stack_) ketika _user_ menekan tombol _back_.
+
+### 2. Navigation 2 (Jetpack Navigation Component)
+
+Ini adalah standar industri yang paling banyak dipakai dalam beberapa tahun terakhir.
+
+**Konsep Utama:**
+Google merilis _library_ ini untuk menstandarkan navigasi menjadi satu sumber kebenaran (_single source of truth_). Ada tiga komponen penting yang digunakan: `NavHost`, `NavController`, dan grafik navigasi (awalnya berbasis XML, lalu diadaptasi menggunakan _string routes_ untuk Compose).
+
+**Karakteristik:**
+Sistem navigasi memegang kendali penuh atas _back stack_. Di Jetpack Compose, pemanggilan pindah layar biasanya terlihat seperti ini: `navController.navigate("detail_screen/123")`.
+
+**Kekurangan di Compose:**
+Karena pondasi awalnya didesain untuk sistem View/XML sekitar 7 tahun lalu, pendekatannya kadang terasa kaku di Compose. Tumpukan riwayat layar disembunyikan di dalam _library_, sehingga _developer_ tidak bisa dengan bebas melihat atau memanipulasinya layaknya data biasa.
+
+### 3. Navigation 3 (Jetpack Navigation 3)
+
+Ini adalah teknologi terbaru (versi stabil rilis akhir tahun 2025) yang dibangun dari nol khusus untuk Jetpack Compose dan Kotlin Multiplatform (KMP).
+
+**Konsep Utama:**
+Pendekatannya murni berbasis _State_ (State-Driven). Tidak ada lagi `NavController` yang rumit.
+
+**Karakteristik:**
+_Developer_ memegang kendali penuh atas _back stack_. Tumpukan layar di sini hanyalah sebuah _List_ biasa (`SnapshotStateList`). Komponen utamanya bernama `NavDisplay` yang bertugas mendengarkan _list_ tersebut.
+
+- Untuk pindah ke layar baru: Cukup tambahkan (_add_) layar ke dalam _list_.
+- Untuk kembali (tombol _back_): Cukup hapus (_remove_) item terakhir dari _list_ tersebut.
+
+**Kelebihan:**
+Sangat transparan, mudah diuji (_testable_), dan membuat pembuatan animasi transisi antar layar atau membagi layar (_adaptive layouts_) menjadi jauh lebih sederhana.
+
+> Referensi: https://developer.android.com/guide/navigation/navigation-3?hl=id
+
+## Praktikum: Implementasi Navigation 3
+
+Langkah-langkah menerapkan Navigation 3 ke dalam proyek aplikasi _ToDo List_ yang dibuat sebelumnya.
+
+### 1. Setup Dependency
+
+Tambahkan beberapa _dependency_ yang diperlukan ke file `gradle/libs.versions.toml` untuk mendukung fitur Navigation 3 dan proses serialisasi data pada aplikasi.
 
 ```toml
 [versions]
@@ -44,6 +101,10 @@ dependencies {
 }
 ```
 
+**_(Jangan lupa klik Sync Now)_**
+
+### 2. Mendefinisikan Rute (Routes)
+
 Selanjutnya, buat daftar routes di file `core/Routes.kt`. File ini berfungsi untuk mendefinisikan semua rute (halaman) yang akan digunakan dalam navigasi aplikasi. Setiap route dapat berupa data object (jika tidak membutuhkan parameter) atau data class (jika membutuhkan parameter).
 
 ```kt
@@ -67,6 +128,8 @@ object Routes {
     ) : NavKey
 }
 ```
+
+### 3. Setup Endpoint Utama (ComposeApp)
 
 Selanjutnya, buat endpoint utama aplikasi Compose di file `core/ComposeApp.kt`. Endpoint ini berfungsi sebagai titik awal aplikasi, yang akan mengatur navigasi dan menampilkan tampilan utama menggunakan Navigation 3.
 
@@ -100,6 +163,8 @@ fun ComposeApp() {
 }
 ```
 
+### 4. Menghubungkan ComposeApp ke MainActivity
+
 Ubah file `MainActivity.kt` agar menjalankan aplikasi berbasis Compose yang telah dibuat.
 
 ```kt
@@ -120,6 +185,8 @@ class MainActivity : ComponentActivity() {
 }
 ```
 
+### 5. Menghubungkan Rute dengan Halaman UI
+
 Daftarkan setiap screen (halaman) pada aplikasi dengan routes yang telah dibuat di file `core/ComposeApp.kt`. Dengan demikian, setiap route akan terhubung ke composable screen yang sesuai.
 
 ```kt
@@ -134,6 +201,8 @@ entryProvider = entryProvider {
 }
 ```
 
+### 6. Membuat Penyedia Akses Navigasi (CompositionLocal)
+
 Agar proses navigasi antar screen lebih mudah dan terpusat, tambahkan composition di file `core/Compositions.kt`. Dengan cara ini, backStack dapat diakses dari mana saja di dalam composable.
 
 ```kt
@@ -145,6 +214,8 @@ val LocalBackStack = compositionLocalOf<NavBackStack<NavKey>> {
     error("error: LocalBackStack not provided")
 }
 ```
+
+### 7. Mendistribusikan Akses Navigasi ke Seluruh Layar
 
 Setelah menambahkan composition, update fungsi ComposeApp di `core/ComposeApp.kt` agar mem-provide backStack ke seluruh composable.
 
@@ -191,6 +262,8 @@ fun ComposeApp() {
 }
 ```
 
+### 8. Pindah ke Halaman Baru (Tanpa Parameter)
+
 Setelah menggunakan composition, perpindahan antar screen dapat dilakukan dengan mudah menggunakan LocalBackStack. Contoh implementasi pada file `feature/auth/presentation/AuthScreen.kt`:
 
 ```kt
@@ -205,6 +278,8 @@ fun AuthScreen() {
     )
 }
 ```
+
+### 9. Pindah ke Halaman Baru (Dengan Parameter)
 
 Untuk melakukan navigasi ke screen lain dengan membawa parameter, gunakan pola berikut. Contoh implementasi dapat dilihat pada file `feature/todo/presentation/ListTodoScreen.kt`:
 
@@ -224,6 +299,8 @@ fun ListTodoScreen() {
 }
 ```
 
+### 10. Kembali ke Halaman Sebelumnya (Pop Back Stack)
+
 Untuk kembali ke halaman sebelumnya (pop back stack), gunakan kode berikut pada screen yang diinginkan. Contoh implementasi:
 
 ```kt
@@ -238,6 +315,8 @@ fun DetailTodoScreen() {
     )
 }
 ```
+
+### 11. Menangkap Parameter di Halaman Tujuan
 
 Untuk mengambil parameter yang dikirim melalui navigasi (misal id pada DetailTodoRoute), modifikasi entry pada `ComposeApp.kt` seperti berikut:
 
