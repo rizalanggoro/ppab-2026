@@ -7,7 +7,7 @@
 3. [Pengenalan Android Studio, Activity, Jetpack Compose, dan Intent](./week-03/materi.md)
 4. [Jetpack Compose: UI, Layouting, Styling](./week-04/materi.md)
 5. [Compose Navigation](./week-05/materi.md)
-6. [List dan Composable List Item](./week-06/materi.md)
+6. [Lazy List, Alert Dialog, dan Bottom Sheet](./week-06/materi.md)
 7. [State Management dan View Model](./week-07/materi.md)
 8. Responsi 1
 9. [Data Persistence 1](./week-08/materi.md)

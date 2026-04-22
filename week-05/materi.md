@@ -2,62 +2,81 @@
 
 ## Evolusi Navigasi di Android
 
-Di ekosistem Android, evolusi cara perpindahan antar layar (screen routing) umumnya dibagi ke dalam tiga fase atau generasi:
+Di ekosistem Android, cara perpindahan antar layar (_screen routing_) telah berkembang melalui tiga generasi:
 
-### 1. Navigation 1 (Era Klasik)
+### 1. Navigation 1 — Era Klasik
 
-Ini adalah cara "jadul" sebelum Google merilis arsitektur standar. Di era ini, navigasi antar layar masih dilakukan serba manual.
+Cara "jadul" sebelum Google merilis arsitektur standar. Navigasi antar layar masih dilakukan serba manual.
 
-**Gimana cara kerjanya?**
+**Cara kerjanya:**
 
-- Untuk pindah ke layar penuh yang baru, digunakan `Intent` untuk memanggil `Activity`.
-- Kalau hanya ingin mengganti sebagian isi layar, komponen yang dipakai adalah `FragmentManager` dan `FragmentTransaction`.
+- Untuk pindah ke layar penuh yang baru → gunakan `Intent` untuk memanggil `Activity`
+- Untuk mengganti sebagian isi layar → gunakan `FragmentManager` dan `FragmentTransaction`
 
-**Kenapa sekarang mulai ditinggalkan?**
-Pendekatannya sangat _imperatif_ (sistem harus diperintah langkah demi langkah). Efeknya:
+**Kenapa mulai ditinggalkan?**
 
-1. Kodenya menjadi sangat panjang (_boilerplate_).
-2. Rawan _crash_ (biasanya karena masalah _state loss_).
-3. Membingungkan saat harus melacak tumpukan riwayat layar (_back stack_) ketika _user_ menekan tombol _back_.
+Pendekatannya sangat _imperatif_ — sistem harus diperintah langkah demi langkah. Efeknya:
 
-### 2. Navigation 2 (Jetpack Navigation Component)
+1. Kode menjadi sangat panjang (_boilerplate_)
+2. Rawan _crash_ (biasanya karena masalah _state loss_)
+3. Membingungkan saat melacak tumpukan riwayat layar (_back stack_) ketika user menekan tombol _back_
 
-Ini adalah standar industri yang paling banyak dipakai dalam beberapa tahun terakhir.
+### 2. Navigation 2 — Jetpack Navigation Component
 
-**Konsep Utama:**
-Google merilis _library_ ini untuk menstandarkan navigasi menjadi satu sumber kebenaran (_single source of truth_). Ada tiga komponen penting yang digunakan: `NavHost`, `NavController`, dan grafik navigasi (awalnya berbasis XML, lalu diadaptasi menggunakan _string routes_ untuk Compose).
+Standar industri yang paling banyak dipakai dalam beberapa tahun terakhir.
+
+**Konsep utama:**
+
+Google merilis _library_ ini untuk menstandarkan navigasi menjadi satu sumber kebenaran (_single source of truth_). Tiga komponen pentingnya: `NavHost`, `NavController`, dan grafik navigasi (awalnya XML, lalu diadaptasi ke _string routes_ untuk Compose).
 
 **Karakteristik:**
-Sistem navigasi memegang kendali penuh atas _back stack_. Di Jetpack Compose, pemanggilan pindah layar biasanya terlihat seperti ini: `navController.navigate("detail_screen/123")`.
+
+Sistem navigasi memegang kendali penuh atas _back stack_. Di Jetpack Compose, perpindahan layar terlihat seperti ini:
+
+```kotlin
+navController.navigate("detail_screen/123")
+```
 
 **Kekurangan di Compose:**
-Karena pondasi awalnya didesain untuk sistem View/XML sekitar 7 tahun lalu, pendekatannya kadang terasa kaku di Compose. Tumpukan riwayat layar disembunyikan di dalam _library_, sehingga _developer_ tidak bisa dengan bebas melihat atau memanipulasinya layaknya data biasa.
 
-### 3. Navigation 3 (Jetpack Navigation 3)
+Karena pondasinya didesain untuk sistem View/XML sekitar 7 tahun lalu, pendekatannya kadang terasa kaku di Compose. Tumpukan riwayat layar disembunyikan di dalam _library_, sehingga developer tidak bisa bebas melihat atau memanipulasinya layaknya data biasa.
 
-Ini adalah teknologi terbaru (versi stabil rilis akhir tahun 2025) yang dibangun dari nol khusus untuk Jetpack Compose dan Kotlin Multiplatform (KMP).
+### 3. Navigation 3 — Jetpack Navigation 3
 
-**Konsep Utama:**
-Pendekatannya murni berbasis _State_ (State-Driven). Tidak ada lagi `NavController` yang rumit.
+Teknologi terbaru yang dibangun dari nol, khusus untuk Jetpack Compose dan Kotlin Multiplatform (KMP). Versi stabil dirilis akhir tahun 2025.
+
+**Konsep utama:**
+
+Pendekatannya murni berbasis _State_ (_State-Driven_). Tidak ada lagi `NavController` yang rumit.
 
 **Karakteristik:**
-_Developer_ memegang kendali penuh atas _back stack_. Tumpukan layar di sini hanyalah sebuah _List_ biasa (`SnapshotStateList`). Komponen utamanya bernama `NavDisplay` yang bertugas mendengarkan _list_ tersebut.
 
-- Untuk pindah ke layar baru: Cukup tambahkan (_add_) layar ke dalam _list_.
-- Untuk kembali (tombol _back_): Cukup hapus (_remove_) item terakhir dari _list_ tersebut.
+Developer memegang kendali penuh atas _back stack_. Tumpukan layar hanyalah sebuah `List` biasa (`SnapshotStateList`). Komponen utamanya bernama `NavDisplay` yang bertugas mendengarkan list tersebut.
+
+| Aksi                        | Cara                           |
+| --------------------------- | ------------------------------ |
+| Pindah ke layar baru        | `backStack.add(Route)`         |
+| Kembali ke layar sebelumnya | `backStack.removeLastOrNull()` |
 
 **Kelebihan:**
-Sangat transparan, mudah diuji (_testable_), dan membuat pembuatan animasi transisi antar layar atau membagi layar (_adaptive layouts_) menjadi jauh lebih sederhana.
 
-> Referensi: https://developer.android.com/guide/navigation/navigation-3?hl=id
+- Sangat transparan dan mudah diuji (_testable_)
+- Animasi transisi antar layar lebih mudah dibuat
+- _Adaptive layouts_ (layar terbagi) menjadi jauh lebih sederhana
+
+> Referensi resmi: https://developer.android.com/guide/navigation/navigation-3?hl=id
 
 ## Praktikum: Implementasi Navigation 3
 
-Langkah-langkah menerapkan Navigation 3 ke dalam proyek aplikasi _ToDo List_ yang dibuat sebelumnya.
+Langkah-langkah menerapkan Navigation 3 ke dalam proyek aplikasi _ToDo List_.
 
-### 1. Setup Dependency
+> **Gambaran alurnya:**
+> `backStack` (List) → didengarkan oleh `NavDisplay` → menampilkan layar yang sesuai.
+> Navigasi = memanipulasi list. Sesederhana itu.
 
-Tambahkan beberapa _dependency_ yang diperlukan ke file `gradle/libs.versions.toml` untuk mendukung fitur Navigation 3 dan proses serialisasi data pada aplikasi.
+### Langkah 1 — Setup Dependency
+
+Tambahkan dependency ke file `gradle/libs.versions.toml`:
 
 ```toml
 [versions]
@@ -68,31 +87,29 @@ kotlinxSerializationCore = "1.9.0"
 material3AdaptiveNav3 = "1.3.0-alpha09"
 
 [libraries]
-# Core Navigation 3 libraries
+# Core Navigation 3
 androidx-navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "nav3Core" }
 androidx-navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "nav3Core" }
 
-# Optional add-on libraries
+# Add-on libraries
 androidx-lifecycle-viewmodel-navigation3 = { module = "androidx.lifecycle:lifecycle-viewmodel-navigation3", version.ref = "lifecycleViewmodelNav3" }
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinxSerializationCore" }
 androidx-material3-adaptive-navigation3 = { group = "androidx.compose.material3.adaptive", name = "adaptive-navigation3", version.ref = "material3AdaptiveNav3" }
 
 [plugins]
-# Optional plugins
-jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization"}
+jetbrains-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinSerialization" }
 ```
 
-Tambahkan plugin dan dependency berikut ke file `app/build.gradle.kts`:
+Tambahkan plugin dan dependency ke `app/build.gradle.kts`:
 
-```kts
+```kotlin
 plugins {
-    ...
-    // Optional, provides the @Serialize annotation for autogeneration of Serializers.
+    // ...
     alias(libs.plugins.jetbrains.kotlin.serialization)
 }
 
 dependencies {
-    ...
+    // ...
     implementation(libs.androidx.navigation3.ui)
     implementation(libs.androidx.navigation3.runtime)
     implementation(libs.androidx.lifecycle.viewmodel.navigation3)
@@ -101,13 +118,18 @@ dependencies {
 }
 ```
 
-**_(Jangan lupa klik Sync Now)_**
+> ⚠️ Jangan lupa klik **Sync Now** setelah mengubah file Gradle.
 
-### 2. Mendefinisikan Rute (Routes)
+### Langkah 2 — Mendefinisikan Rute (Routes)
 
-Selanjutnya, buat daftar routes di file `core/Routes.kt`. File ini berfungsi untuk mendefinisikan semua rute (halaman) yang akan digunakan dalam navigasi aplikasi. Setiap route dapat berupa data object (jika tidak membutuhkan parameter) atau data class (jika membutuhkan parameter).
+Buat file `core/Routes.kt`. File ini mendefinisikan semua halaman yang bisa dikunjungi dalam aplikasi.
 
-```kt
+**Aturan sederhana:**
+
+- Halaman **tanpa parameter** → gunakan `data object`
+- Halaman **dengan parameter** → gunakan `data class`
+
+```kotlin
 import androidx.navigation3.runtime.NavKey
 import kotlinx.serialization.Serializable
 
@@ -129,11 +151,11 @@ object Routes {
 }
 ```
 
-### 3. Setup Endpoint Utama (ComposeApp)
+### Langkah 3 — Setup Endpoint Utama (ComposeApp)
 
-Selanjutnya, buat endpoint utama aplikasi Compose di file `core/ComposeApp.kt`. Endpoint ini berfungsi sebagai titik awal aplikasi, yang akan mengatur navigasi dan menampilkan tampilan utama menggunakan Navigation 3.
+Buat file `core/ComposeApp.kt` sebagai titik masuk utama aplikasi Compose. Di sinilah `backStack` dibuat dan `NavDisplay` dipasang.
 
-```kt
+```kotlin
 import androidx.compose.runtime.Composable
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.entryProvider
@@ -144,30 +166,31 @@ import com.asprak.todolistd.ui.theme.TodoListTheme
 
 @Composable
 fun ComposeApp() {
+    // AuthRoute dijadikan layar pertama yang muncul saat app dibuka
     val backStack = rememberNavBackStack(Routes.AuthRoute)
 
     TodoListTheme {
         NavDisplay(
             backStack = backStack,
             entryDecorators = listOf(
-                // Add the default decorators for managing scenes and saving state
+                // Menyimpan state composable saat navigasi
                 rememberSaveableStateHolderNavEntryDecorator(),
-                // Then add the view model store decorator
+                // Mengelola ViewModel per layar
                 rememberViewModelStoreNavEntryDecorator()
             ),
             entryProvider = entryProvider {
-
+                // Daftar layar akan ditambahkan di langkah berikutnya
             }
         )
     }
 }
 ```
 
-### 4. Menghubungkan ComposeApp ke MainActivity
+### Langkah 4 — Menghubungkan ComposeApp ke MainActivity
 
-Ubah file `MainActivity.kt` agar menjalankan aplikasi berbasis Compose yang telah dibuat.
+Ubah `MainActivity.kt` agar menjalankan `ComposeApp` sebagai konten utama:
 
-```kt
+```kotlin
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -185,27 +208,27 @@ class MainActivity : ComponentActivity() {
 }
 ```
 
-### 5. Menghubungkan Rute dengan Halaman UI
+### Langkah 5 — Menghubungkan Rute dengan Halaman UI
 
-Daftarkan setiap screen (halaman) pada aplikasi dengan routes yang telah dibuat di file `core/ComposeApp.kt`. Dengan demikian, setiap route akan terhubung ke composable screen yang sesuai.
+Daftarkan setiap screen ke route-nya masing-masing di dalam `entryProvider` pada `core/ComposeApp.kt`:
 
-```kt
+```kotlin
 entryProvider = entryProvider {
-    // auth
+    // Auth
     entry<Routes.AuthRoute> { AuthScreen() }
 
-    // todo
+    // Todo
     entry<Routes.ListTodoRoute> { ListTodoScreen() }
     entry<Routes.CreateTodoRoute> { CreateTodoScreen() }
     entry<Routes.DetailTodoRoute> { DetailTodoScreen() }
 }
 ```
 
-### 6. Membuat Penyedia Akses Navigasi (CompositionLocal)
+### Langkah 6 — Membuat Penyedia Akses Navigasi (CompositionLocal)
 
-Agar proses navigasi antar screen lebih mudah dan terpusat, tambahkan composition di file `core/Compositions.kt`. Dengan cara ini, backStack dapat diakses dari mana saja di dalam composable.
+Agar `backStack` bisa diakses dari layar mana saja tanpa perlu dikirim sebagai parameter, buat file `core/Compositions.kt`:
 
-```kt
+```kotlin
 import androidx.compose.runtime.compositionLocalOf
 import androidx.navigation3.runtime.NavBackStack
 import androidx.navigation3.runtime.NavKey
@@ -215,11 +238,13 @@ val LocalBackStack = compositionLocalOf<NavBackStack<NavKey>> {
 }
 ```
 
-### 7. Mendistribusikan Akses Navigasi ke Seluruh Layar
+> 💡 `compositionLocalOf` bekerja mirip seperti "variabel global" khusus di dalam Compose. Nilainya disediakan di satu tempat (di `ComposeApp`), lalu bisa dibaca dari composable mana saja di bawahnya.
 
-Setelah menambahkan composition, update fungsi ComposeApp di `core/ComposeApp.kt` agar mem-provide backStack ke seluruh composable.
+### Langkah 7 — Mendistribusikan Akses Navigasi ke Seluruh Layar
 
-```kt
+Update `ComposeApp.kt` untuk mem-_provide_ `backStack` lewat `CompositionLocalProvider`:
+
+```kotlin
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
@@ -242,16 +267,11 @@ fun ComposeApp() {
             NavDisplay(
                 backStack = backStack,
                 entryDecorators = listOf(
-                    // Add the default decorators for managing scenes and saving state
                     rememberSaveableStateHolderNavEntryDecorator(),
-                    // Then add the view model store decorator
                     rememberViewModelStoreNavEntryDecorator()
                 ),
                 entryProvider = entryProvider {
-                    // auth
                     entry<Routes.AuthRoute> { AuthScreen() }
-
-                    // todo
                     entry<Routes.ListTodoRoute> { ListTodoScreen() }
                     entry<Routes.CreateTodoRoute> { CreateTodoScreen() }
                     entry<Routes.DetailTodoRoute> { DetailTodoScreen() }
@@ -262,11 +282,11 @@ fun ComposeApp() {
 }
 ```
 
-### 8. Pindah ke Halaman Baru (Tanpa Parameter)
+### Langkah 8 — Navigasi ke Halaman Baru (Tanpa Parameter)
 
-Setelah menggunakan composition, perpindahan antar screen dapat dilakukan dengan mudah menggunakan LocalBackStack. Contoh implementasi pada file `feature/auth/presentation/AuthScreen.kt`:
+Setelah `LocalBackStack` tersedia, navigasi tinggal memanggil `.add()`. Contoh di `feature/auth/presentation/AuthScreen.kt`:
 
-```kt
+```kotlin
 @Composable
 fun AuthScreen() {
     val backStack = LocalBackStack.current
@@ -279,11 +299,11 @@ fun AuthScreen() {
 }
 ```
 
-### 9. Pindah ke Halaman Baru (Dengan Parameter)
+### Langkah 9 — Navigasi ke Halaman Baru (Dengan Parameter)
 
-Untuk melakukan navigasi ke screen lain dengan membawa parameter, gunakan pola berikut. Contoh implementasi dapat dilihat pada file `feature/todo/presentation/ListTodoScreen.kt`:
+Untuk membawa data saat berpindah layar, cukup isi properti di `data class` route-nya. Contoh di `feature/todo/presentation/ListTodoScreen.kt`:
 
-```kt
+```kotlin
 @Composable
 fun ListTodoScreen() {
     val backStack = LocalBackStack.current
@@ -292,18 +312,18 @@ fun ListTodoScreen() {
         onClickCreate = {
             backStack.add(Routes.CreateTodoRoute)
         },
-        onClickTodo = {
-            backStack.add(Routes.DetailTodoRoute("todo-id-$it"))
+        onClickTodo = { todoIndex ->
+            backStack.add(Routes.DetailTodoRoute("todo-id-$todoIndex"))
         }
     )
 }
 ```
 
-### 10. Kembali ke Halaman Sebelumnya (Pop Back Stack)
+### Langkah 10 — Kembali ke Halaman Sebelumnya (Pop Back Stack)
 
-Untuk kembali ke halaman sebelumnya (pop back stack), gunakan kode berikut pada screen yang diinginkan. Contoh implementasi:
+Untuk tombol _back_ atau aksi sejenisnya, cukup hapus item terakhir dari list. Contoh di `DetailTodoScreen`:
 
-```kt
+```kotlin
 @Composable
 fun DetailTodoScreen() {
     val backStack = LocalBackStack.current
@@ -316,14 +336,26 @@ fun DetailTodoScreen() {
 }
 ```
 
-### 11. Menangkap Parameter di Halaman Tujuan
+### Langkah 11 — Menangkap Parameter di Halaman Tujuan
 
-Untuk mengambil parameter yang dikirim melalui navigasi (misal id pada DetailTodoRoute), modifikasi entry pada `ComposeApp.kt` seperti berikut:
+Parameter yang dikirim lewat `data class` route bisa ditangkap langsung di dalam `entryProvider`. Update `ComposeApp.kt`:
 
-```kt
+```kotlin
 entry<Routes.DetailTodoRoute> {
     val id = it.id
 
     DetailTodoScreen(id = id)
 }
 ```
+
+Di sini, `it` merujuk pada objek `DetailTodoRoute` yang sudah berisi nilai `id` yang dikirim saat navigasi.
+
+## Ringkasan Konsep
+
+| Konsep          | Navigation 2                      | Navigation 3                         |
+| --------------- | --------------------------------- | ------------------------------------ |
+| Pindah layar    | `navController.navigate("route")` | `backStack.add(Route)`               |
+| Kembali         | `navController.popBackStack()`    | `backStack.removeLastOrNull()`       |
+| Back stack      | Tersembunyi di library            | `List` biasa, bisa diakses bebas     |
+| Kirim parameter | String route: `"detail/123"`      | Data class: `DetailTodoRoute("123")` |
+| Ambil parameter | `savedStateHandle["id"]`          | `it.id` langsung di `entryProvider`  |
