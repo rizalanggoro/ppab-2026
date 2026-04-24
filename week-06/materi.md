@@ -36,7 +36,7 @@ Praktikum kali ini implementasi lazy list menggunakan lazy column dan lazy verti
 
 ### 1. Pastikan Data Class Todo Sudah Ada
 
-Jika belum ada, buat file `data/Todo.kt`:
+Jika belum ada, buat file `domain/Todo.kt`:
 
 ```kotlin
 data class Todo(
@@ -49,255 +49,112 @@ data class Todo(
 
 ### 2. Buat TodoItem Composable
 
-Buat file baru `feature/todo/presentation/components/TodoItem.kt`. Komponen ini merepresentasikan satu baris todo di dalam list.
+Buat file baru `feature/todo/presentation/ListTodoScreen.kt`. Komponen ini merepresentasikan satu baris todo di dalam list.
 
 ```kotlin
-@Composable
-fun TodoItem(
-    todo: Todo,
-    onClick: () -> Unit = {},
-    onLongClick: () -> Unit = {},
-    onCheckedChange: (Boolean) -> Unit = {}
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 4.dp)
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Checkbox(
-                checked = todo.isDone,
-                onCheckedChange = onCheckedChange
-            )
 
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = todo.title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = if (todo.isDone) TextDecoration.LineThrough else null
-                )
-                if (todo.description.isNotBlank()) {
-                    Text(
-                        text = todo.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
-}
-```
-
-### 3. Update ListTodoScreen Menggunakan LazyColumn
-
-Update `feature/todo/presentation/ListTodoScreen.kt`:
-
-```kotlin
 @Composable
 fun ListTodoScreen() {
     val backStack = LocalBackStack.current
 
-    // Data dummy sementara
-    val todos = remember {
-        mutableStateListOf(
-            Todo(id = "1", title = "Belajar Jetpack Compose", description = "Pelajari komponen dasar"),
-            Todo(id = "2", title = "Implementasi Navigation 3", description = "Gunakan NavDisplay dan backStack"),
-            Todo(id = "3", title = "Buat fitur login", description = ""),
-            Todo(id = "4", title = "Tulis unit test", description = "Minimal 80% coverage"),
-            Todo(id = "5", title = "Review pull request teman", description = "Cek logika dan styling"),
-        )
-    }
-
-    Scaffold(
-        topBar = {
-            TopAppBar(title = { Text("Daftar Todo") })
+    Content(
+        todos = dummyTodos,
+        onClickCreate = {
+            backStack.add(Routes.CreateTodoRoute)
         },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { backStack.add(Routes.CreateTodoRoute) }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah Todo")
-            }
+        onClickTodo = {
+            backStack.add(Routes.DetailTodoRoute(it))
         }
-    ) { innerPadding ->
-        LazyColumn(
-            contentPadding = PaddingValues(
-                top = innerPadding.calculateTopPadding() + 8.dp,
-                bottom = innerPadding.calculateBottomPadding() + 8.dp
-            )
-        ) {
-            items(todos, key = { it.id }) { todo ->
-                TodoItem(
-                    todo = todo,
-                    onClick = {
-                        backStack.add(Routes.DetailTodoRoute(id = todo.id))
-                    },
-                    onCheckedChange = { isChecked ->
-                        val index = todos.indexOf(todo)
-                        todos[index] = todo.copy(isDone = isChecked)
-                    }
-                )
-            }
-        }
-    }
+    )
 }
-```
 
-> Perhatikan parameter `key = { it.id }` pada `items()`. Ini membantu Compose mengidentifikasi item secara unik sehingga animasi dan _recomposition_ lebih efisien.
-
-## Implementasi LazyVerticalGrid
-
-Selain list vertikal, kita bisa menampilkan todo dalam format grid. Ini berguna misalnya untuk tampilan "card" yang lebih lebar.
-
-### 1. Buat TodoGridItem Composable
-
-Buat file `feature/todo/presentation/components/TodoGridItem.kt`:
-
-```kotlin
 @Composable
-fun TodoGridItem(
-    todo: Todo,
-    onClick: () -> Unit = {}
+private fun Content(
+    todos: List<Todo> = emptyList(),
+    isLoading: Boolean = false,
+    onClickCreate: () -> Unit = {},
+    onClickTodo: (Int) -> Unit = {}
 ) {
-    Card(
-        modifier = Modifier
-            .aspectRatio(1f)
-            .clickable { onClick() },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (todo.isDone)
-                MaterialTheme.colorScheme.surfaceVariant
-            else
-                MaterialTheme.colorScheme.surface
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.SpaceBetween
-        ) {
-            Icon(
-                imageVector = if (todo.isDone) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                contentDescription = null,
-                tint = if (todo.isDone)
-                    MaterialTheme.colorScheme.primary
-                else
-                    MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Column {
-                Text(
-                    text = todo.title,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    textDecoration = if (todo.isDone) TextDecoration.LineThrough else null
-                )
-                if (todo.description.isNotBlank()) {
-                    Text(
-                        text = todo.description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-        }
-    }
-}
-```
-
-### 2. Tambahkan Toggle Tampilan di ListTodoScreen
-
-Update `ListTodoScreen.kt` untuk mendukung perpindahan antara `LazyColumn` dan `LazyVerticalGrid`:
-
-```kotlin
-@Composable
-fun ListTodoScreen() {
-    val backStack = LocalBackStack.current
-    var isGridView by remember { mutableStateOf(false) }
-
-    val todos = remember { /* ... data sama seperti sebelumnya ... */ }
-
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Daftar Todo") },
+                title = {
+                    Text("Todo")
+                },
                 actions = {
-                    IconButton(onClick = { isGridView = !isGridView }) {
+                    IconButton(onClick = {}) {
                         Icon(
-                            imageVector = if (isGridView) Icons.Default.ViewList else Icons.Default.GridView,
-                            contentDescription = "Toggle View"
+                            Icons.Rounded.Refresh,
+                            contentDescription = null
                         )
                     }
                 }
             )
         },
         floatingActionButton = {
-            FloatingActionButton(
-                onClick = { backStack.add(Routes.CreateTodoRoute) }
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Tambah Todo")
-            }
-        }
-    ) { innerPadding ->
-        val topPad = innerPadding.calculateTopPadding() + 8.dp
-        val botPad = innerPadding.calculateBottomPadding() + 8.dp
-
-        if (isGridView) {
-            LazyVerticalGrid(
-                columns = GridCells.Fixed(2),
-                contentPadding = PaddingValues(
-                    start = 16.dp, end = 16.dp,
-                    top = topPad, bottom = botPad
-                ),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(todos, key = { it.id }) { todo ->
-                    TodoGridItem(
-                        todo = todo,
-                        onClick = { backStack.add(Routes.DetailTodoRoute(id = todo.id)) }
+            when (isLoading) {
+                true -> Unit
+                else -> FloatingActionButton(
+                    onClick = onClickCreate
+                ) {
+                    Icon(
+                        Icons.Rounded.Add,
+                        contentDescription = null,
                     )
                 }
             }
-        } else {
-            LazyColumn(
-                contentPadding = PaddingValues(top = topPad, bottom = botPad)
-            ) {
-                items(todos, key = { it.id }) { todo ->
-                    TodoItem(
-                        todo = todo,
-                        onClick = { backStack.add(Routes.DetailTodoRoute(id = todo.id)) },
-                        onCheckedChange = { isChecked ->
-                            val index = todos.indexOf(todo)
-                            todos[index] = todo.copy(isDone = isChecked)
-                        }
+        }
+    ) {
+        when (isLoading) {
+            true -> Box(modifier = Modifier.fillMaxSize()) {
+                LoadingIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            false -> Column(modifier = Modifier.padding(it)) {
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    FilterChip(
+                        selected = false,
+                        onClick = {},
+                        label = { Text("Semua") }
                     )
+                    FilterChip(
+                        selected = false,
+                        onClick = {},
+                        label = { Text("Belum selesai") }
+                    )
+                    FilterChip(
+                        selected = false,
+                        onClick = {},
+                        label = { Text("Selesai") }
+                    )
+                }
+
+                LazyColumn(modifier = Modifier.weight(1f)) {
+                    items(todos) {
+                        TodoListItem(
+                            todo = it,
+                            onClickTodo = {
+                                onClickTodo(it.id)
+                            }
+                        )
+                    }
+
+                    item {
+                        Box(modifier = Modifier.height((56 + 32).dp))
+                    }
                 }
             }
         }
     }
 }
 ```
+
+Pada code diatas, kita telah menerapkan apa yang dinamakan lazy column. Seperti yang udah dijelaskan di pertemuan ke 3, kalian pasti sudah banyak yang menggunakan hal ini.
 
 ## Alert Dialog — Konfirmasi Hapus Todo
 
@@ -305,45 +162,125 @@ fun ListTodoScreen() {
 
 ### 1. Buat DeleteTodoDialog Composable
 
-Buat file `feature/todo/presentation/components/DeleteTodoDialog.kt`:
+Buat file `feature/todo/presentation/DetailTodoScreen.kt` dengan code seperti dibawah ini:
 
 ```kotlin
 @Composable
-fun DeleteTodoDialog(
-    todoTitle: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit
+fun DetailTodoScreen(
+    id: Int = 0
+) {
+    val context = LocalContext.current
+    val backStack = LocalBackStack.current
+
+    var isDeleteDialogOpen by remember { mutableStateOf(false) }
+
+    Content(
+        id = id,
+        onClickBack = {
+            backStack.removeLastOrNull()
+        },
+        onClickDelete = {
+            isDeleteDialogOpen = true
+        }
+    )
+
+    if (isDeleteDialogOpen) {
+        DeleteDialog(
+            onDismissRequest = {
+                isDeleteDialogOpen = false
+            },
+            onConfirm = {
+                isDeleteDialogOpen = false
+
+                // hapus todo
+
+                backStack.removeLastOrNull()
+                Toast.makeText(
+                    context, "Todo berhasil dihapus!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        )
+    }
+}
+
+@Composable
+private fun Content(
+    id: Int = 0,
+    isLoading: Boolean = false,
+    onClickBack: () -> Unit = {},
+    onClickDelete: () -> Unit = {}
+) {
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = onClickBack) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                },
+                title = { Text("Detail Todo") },
+                actions = {
+                    if (!isLoading) {
+                        IconButton(onClick = {}) {
+                            Icon(Icons.Rounded.Edit, contentDescription = null)
+                        }
+                        IconButton(onClick = onClickDelete) {
+                            Icon(Icons.Rounded.Delete, contentDescription = null)
+                        }
+                    }
+                }
+            )
+        }
+    ) {
+        when (isLoading) {
+            true -> Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+            ) {
+                LoadingIndicator(
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+
+            else -> Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(it)
+                    .padding(start = 16.dp, end = 16.dp, bottom = 16.dp)
+            ) {
+                Text("Todo title", style = MaterialTheme.typography.titleMedium)
+                Text("Todo detail", style = MaterialTheme.typography.bodyMedium)
+                Text("id: $id", style = MaterialTheme.typography.labelMedium)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DeleteDialog(
+    onDismissRequest: () -> Unit = {},
+    onConfirm: () -> Unit = {}
 ) {
     AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                imageVector = Icons.Default.Delete,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error
-            )
-        },
+        onDismissRequest = onDismissRequest,
         title = {
-            Text(text = "Hapus Todo")
+            Text("Hapus Todo")
         },
         text = {
-            Text(
-                text = "Apakah kamu yakin ingin menghapus \"$todoTitle\"? " +
-                       "Tindakan ini tidak dapat dibatalkan."
-            )
+            Text("Apakah Anda yakin ingin menghapus todo ini?")
         },
         confirmButton = {
-            Button(
-                onClick = onConfirm,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error
-                )
-            ) {
+            TextButton(onClick = onConfirm) {
                 Text("Hapus")
             }
         },
         dismissButton = {
-            OutlinedButton(onClick = onDismiss) {
+            TextButton(onClick = onDismissRequest) {
                 Text("Batal")
             }
         }
@@ -351,58 +288,79 @@ fun DeleteTodoDialog(
 }
 ```
 
-### 2. Integrasikan Dialog ke ListTodoScreen
-
-Update `ListTodoScreen.kt` untuk menampilkan dialog saat item di-_long click_:
+Pada code ini alert dialog dimunculkan setelah mengklik DetailTodoScreen.kt. Alert ini menggunakan state untuk mengontrol Dialog. Statenya seperti dibawah ini.
 
 ```kotlin
-@Composable
-fun ListTodoScreen() {
-    // ...state sebelumnya...
+var isDeleteDialogOpen by remember { mutableStateOf(false) }
+```
 
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var selectedTodo by remember { mutableStateOf<Todo?>(null) }
+State ini digunakan untuk mengontrol kapan alert UI dibuka, defaultnya adalah false.
 
-    Scaffold(/* ... */) { innerPadding ->
-        LazyColumn(/* ... */) {
-            items(todos, key = { it.id }) { todo ->
-                TodoItem(
-                    todo = todo,
-                    onClick = {
-                        backStack.add(Routes.DetailTodoRoute(id = todo.id))
-                    },
-                    onLongClick = {
-                        selectedTodo = todo
-                        showDeleteDialog = true
-                    },
-                    onCheckedChange = { isChecked ->
-                        val index = todos.indexOf(todo)
-                        todos[index] = todo.copy(isDone = isChecked)
-                    }
-                )
-            }
-        }
-    }
-
-    // Tampilkan dialog konfirmasi
-    if (showDeleteDialog && selectedTodo != null) {
-        DeleteTodoDialog(
-            todoTitle = selectedTodo!!.title,
-            onConfirm = {
-                todos.remove(selectedTodo)
-                showDeleteDialog = false
-                selectedTodo = null
-            },
-            onDismiss = {
-                showDeleteDialog = false
-                selectedTodo = null
-            }
-        )
-    }
+```kotlin
+ onClickDelete = {
+            isDeleteDialogOpen = true
 }
 ```
 
-> Perhatikan bahwa `AlertDialog` diletakkan **di luar** `Scaffold`, bukan di dalam `content`-nya. Ini agar dialog bisa muncul di atas seluruh konten layar.
+Code diatas merupakan trigger ketika alert di klik, yang mana akan merubah state yang sudah didefinisi sebelumnya false menjadi true.
+
+```kotlin
+if (isDeleteDialogOpen) {
+        DeleteDialog(
+            onDismissRequest = {
+                isDeleteDialogOpen = false
+            },
+            onConfirm = {
+                isDeleteDialogOpen = false
+
+                // hapus todo
+
+                backStack.removeLastOrNull()
+                Toast.makeText(
+                    context, "Todo berhasil dihapus!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        )
+    }
+```
+
+Alert Dialog ini akan dirender ketika state berubah menjadi true, dan inilah yang dinamakan conditional UI rendering.
+
+```kotlin
+@Composable
+private fun DeleteDialog(
+    onDismissRequest: () -> Unit = {},
+    onConfirm: () -> Unit = {}
+) {
+    AlertDialog(
+        onDismissRequest = onDismissRequest,
+        title = {
+            Text("Hapus Todo")
+        },
+        text = {
+            Text("Apakah Anda yakin ingin menghapus todo ini?")
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm) {
+                Text("Hapus")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismissRequest) {
+                Text("Batal")
+            }
+        }
+    )
+}
+```
+
+Code tersebut adalah komponen komponen dari alert dialog. Bagian-bagiannya:
+
+- title = judul dialog
+- text = isi pesan
+- confirmButton = tombol aksi utama (hapus)
+- dismissButton = tombol batal
 
 ## Bottom Sheet — Detail Todo
 
@@ -410,206 +368,307 @@ fun ListTodoScreen() {
 
 ### 1. Buat TodoDetailBottomSheet Composable
 
-Buat file `feature/todo/presentation/components/TodoDetailBottomSheet.kt`:
+Buat file `feature/todo/presentation/CreateTodoScreen.kt` seperti dibawah ini:
 
 ```kotlin
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TodoDetailBottomSheet(
-    todo: Todo,
-    onDismiss: () -> Unit,
-    onEdit: () -> Unit,
-    onDelete: () -> Unit
+fun CreateTodoScreen() {
+    val backStack = LocalBackStack.current
+
+    var selectedCategoryId by remember { mutableStateOf<Int?>(null) }
+    var isBottomSheetOpen by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+
+    Content(
+        selectedCategory = dummyCategories.firstOrNull {
+            it.id == selectedCategoryId
+        },
+        onClickSelectCategory = {
+            isBottomSheetOpen = true
+        },
+        onClickBack = {
+            backStack.removeLastOrNull()
+        },
+        onClickSave = {}
+    )
+
+    if (isBottomSheetOpen) {
+        BottomSheetSelectCategory(
+            sheetState = bottomSheetState,
+            selectedCategoryId = selectedCategoryId,
+            categories = dummyCategories,
+            onClickItem = {
+                scope.launch {
+                    selectedCategoryId = it.id
+                    if (bottomSheetState.isVisible) {
+                        bottomSheetState.hide()
+                    }
+                }.invokeOnCompletion { isBottomSheetOpen = false }
+            },
+            onDismissRequest = {
+                scope.launch {
+                    if (bottomSheetState.isVisible) {
+                        bottomSheetState.hide()
+                    }
+                }.invokeOnCompletion { isBottomSheetOpen = false }
+            }
+        )
+    }
+}
+
+@Composable
+private fun Content(
+    isLoading: Boolean = false,
+    title: String = "",
+    onChangeTitle: (String) -> Unit = {},
+    detail: String = "",
+    onChangeDetail: (String) -> Unit = {},
+    selectedCategory: Category? = null,
+    onClickSelectCategory: () -> Unit = {},
+    onClickBack: () -> Unit = {},
+    onClickSave: () -> Unit = {}
 ) {
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
-    ModalBottomSheet(
-        onDismissRequest = onDismiss,
-        sheetState = sheetState
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = onClickBack) {
+                        Icon(
+                            Icons.AutoMirrored.Rounded.ArrowBack,
+                            contentDescription = null
+                        )
+                    }
+                },
+                title = {
+                    Text("Create Todo")
+                }
+            )
+        }
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .padding(bottom = 32.dp)
-        ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
+        Column(modifier = Modifier.padding(it)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    imageVector = if (todo.isDone) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
-                    contentDescription = null,
-                    tint = if (todo.isDone)
-                        MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Text(
-                    text = todo.title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    textDecoration = if (todo.isDone) TextDecoration.LineThrough else null
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Status badge
-            Surface(
-                shape = RoundedCornerShape(50),
-                color = if (todo.isDone)
-                    MaterialTheme.colorScheme.primaryContainer
-                else
-                    MaterialTheme.colorScheme.secondaryContainer
-            ) {
-                Text(
-                    text = if (todo.isDone) "Selesai" else "Belum Selesai",
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                    style = MaterialTheme.typography.labelMedium
-                )
-            }
-
-            if (todo.description.isNotBlank()) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Deskripsi",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = todo.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Tombol aksi
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                OutlinedButton(
-                    onClick = onDelete,
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    ),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.error)
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.Delete, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Hapus")
+                    TextField(
+                        value = title,
+                        onValueChange = onChangeTitle,
+                        label = { Text("Title") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isLoading
+                    )
+                    TextField(
+                        value = detail,
+                        onValueChange = onChangeDetail,
+                        label = { Text("Detail") },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isLoading,
+                        minLines = 5
+                    )
                 }
 
-                Button(
-                    onClick = onEdit,
-                    modifier = Modifier.weight(1f)
+                ListItem(
+                    leadingContent = {
+                        Icon(
+                            Icons.Rounded.Category,
+                            contentDescription = null
+                        )
+                    },
+                    headlineContent = {
+                        Text("Kategori")
+                    },
+                    supportingContent = {
+                        Text(
+                            selectedCategory?.name.let { category ->
+                                if (category.isNullOrEmpty()) "Pilih kategori"
+                                else category
+                            }
+                        )
+                    },
+                    trailingContent = {
+                        Icon(
+                            Icons.Rounded.ChevronRight,
+                            contentDescription = null
+                        )
+                    },
+                    modifier = Modifier.clickable(enabled = !isLoading) {
+                        onClickSelectCategory()
+                    }
+                )
+            }
+
+            when (isLoading) {
+                true -> ContainedLoadingIndicator(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .padding(16.dp)
+                )
+
+                else -> Button(
+                    onClick = onClickSave,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Icon(Icons.Default.Edit, contentDescription = null, modifier = Modifier.size(18.dp))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text("Edit")
+                    Text("Save")
                 }
             }
         }
     }
 }
-```
 
-### 2. Integrasikan Bottom Sheet ke ListTodoScreen
-
-Update `ListTodoScreen.kt` agar bottom sheet muncul saat item diklik:
-
-```kotlin
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ListTodoScreen() {
-    val backStack = LocalBackStack.current
-
-    val todos = remember { mutableStateListOf(/* data dummy */) }
-
-    var showDeleteDialog by remember { mutableStateOf(false) }
-    var showBottomSheet by remember { mutableStateOf(false) }
-    var selectedTodo by remember { mutableStateOf<Todo?>(null) }
-
-    Scaffold(/* ... */) { innerPadding ->
-        LazyColumn(/* ... */) {
-            items(todos, key = { it.id }) { todo ->
-                TodoItem(
-                    todo = todo,
-                    onClick = {
-                        selectedTodo = todo
-                        showBottomSheet = true
+private fun BottomSheetSelectCategory(
+    sheetState: SheetState = rememberModalBottomSheetState(),
+    selectedCategoryId: Int? = null,
+    categories: List<Category> = emptyList(),
+    onClickItem: (Category) -> Unit = {},
+    onDismissRequest: () -> Unit = {},
+) {
+    ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState
+    ) {
+        LazyColumn {
+            items(categories) {
+                ListItem(
+                    leadingContent = {
+                        RadioButton(
+                            selected = it.id == selectedCategoryId,
+                            onClick = null
+                        )
                     },
-                    onLongClick = {
-                        selectedTodo = todo
-                        showDeleteDialog = true
+                    headlineContent = {
+                        Text(it.name)
                     },
-                    onCheckedChange = { isChecked ->
-                        val index = todos.indexOf(todo)
-                        todos[index] = todo.copy(isDone = isChecked)
+                    colors = ListItemDefaults.colors(
+                        containerColor = Color.Transparent
+                    ),
+                    modifier = Modifier.clickable {
+                        onClickItem(it)
                     }
                 )
             }
         }
-    }
 
-    // Alert Dialog
-    if (showDeleteDialog && selectedTodo != null) {
-        DeleteTodoDialog(
-            todoTitle = selectedTodo!!.title,
-            onConfirm = {
-                todos.remove(selectedTodo)
-                showDeleteDialog = false
-                selectedTodo = null
-            },
-            onDismiss = {
-                showDeleteDialog = false
-                selectedTodo = null
-            }
-        )
-    }
-
-    // Bottom Sheet
-    if (showBottomSheet && selectedTodo != null) {
-        TodoDetailBottomSheet(
-            todo = selectedTodo!!,
-            onDismiss = {
-                showBottomSheet = false
-                selectedTodo = null
-            },
-            onEdit = {
-                showBottomSheet = false
-                backStack.add(Routes.DetailTodoRoute(id = selectedTodo!!.id))
-                selectedTodo = null
-            },
-            onDelete = {
-                showBottomSheet = false
-                showDeleteDialog = true
-                // selectedTodo tetap terisi untuk dialog hapus
-            }
-        )
+        OutlinedButton(
+            onClick = onDismissRequest,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("Batal")
+        }
     }
 }
 ```
 
-## Rangkuman Interaksi
+Bottom Sheet adalah panel yang akan muncul dari bawah layar untuk menampilkan pilihan atau aksi tambahan tanpa pindah halaman. Pada code kali ini fungsi nya untuk memilih kategori todo.
 
-| Aksi                  | Komponen               | Hasil                             |
-| --------------------- | ---------------------- | --------------------------------- |
-| Klik item todo        | `TodoItem`             | Membuka `TodoDetailBottomSheet`   |
-| Long click item todo  | `TodoItem`             | Membuka `DeleteTodoDialog`        |
-| Centang checkbox      | `TodoItem`             | Status `isDone` toggle            |
-| Konfirmasi hapus      | `AlertDialog`          | Item terhapus dari list           |
-| Batal hapus           | `AlertDialog`          | Dialog tertutup, data aman        |
-| Tombol Edit di sheet  | `ModalBottomSheet`     | Navigasi ke halaman detail/edit   |
-| Tombol Hapus di sheet | `ModalBottomSheet`     | Memunculkan `DeleteTodoDialog`    |
-| Klik tombol grid/list | `IconButton` di TopBar | Toggle tampilan `LazyColumn`/Grid |
+```kotlin
+var isBottomSheetOpen by remember { mutableStateOf(false) }
+val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+```
+
+isBottomSheetOpen digunakan untuk menentukan apakah sheet ditampilkan, lalu bottomSheetState digunakan untuk mengontrol animasi & state (open/close).
+
+```kotlin
+onClickSelectCategory = {
+    isBottomSheetOpen = true
+}
+```
+
+Seperti dikonsep Dialog Alert sebelumnya, jadi saat user klik "Kategori" state jadi true dan bottom sheet muncul. Untuk event membuka Bottom Sheet ada dicode di bawah ini.
+
+```kotlin
+if (isBottomSheetOpen) {
+    BottomSheetSelectCategory(...)
+}
+```
+
+Ditampilkan secara conditional dan akan di render hanya saat dibutuhkan.
+
+```kotlin
+ModalBottomSheet(
+        onDismissRequest = onDismissRequest,
+        sheetState = sheetState
+    ) {
+        LazyColumn {
+            items(categories) {
+                ListItem(
+                    leadingContent = {
+                        RadioButton(
+                            selected = it.id == selectedCategoryId,
+                            onClick = null
+                        )
+                    },
+                    headlineContent = {
+                        Text(it.name)
+                    },
+                    colors = ListItemDefaults.colors(
+                        containerColor = Color.Transparent
+                    ),
+                    modifier = Modifier.clickable {
+                        onClickItem(it)
+                    }
+                )
+            }
+        }
+
+        OutlinedButton(
+            onClick = onDismissRequest,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text("Batal")
+        }
+    }
+```
+
+Code berikut merupakan isi utama dari ModalBottomSheet yang mana versi modern (overlay dan fokus ke user) serta bisa ditutup dengan hanya swipe atau klik diluar. Isi kategori pada code tersebut itu berada di dalam LazyColumn, kenapa pakai lazy? karena list ini bisa banyak tergantung nanti inputkan banyak kategori didalam aplikasinya.
+
+```kotlin
+onClickItem = {
+    scope.launch {
+        selectedCategoryId = it.id
+        if (bottomSheetState.isVisible) {
+            bottomSheetState.hide()
+        }
+    }.invokeOnCompletion { isBottomSheetOpen = false }
+}
+```
+
+Alurnya adalah
+
+- User klik kategori
+- Simpan selectedCategoryId
+- Tutup Bottom Sheet (pakai coroutine karena animasi)
+- Setelah selesai set isBottomSheetOpen = false
+
+```kotlin
+OutlinedButton(
+    onClick = onDismissRequest
+)
+```
+
+Code diatas untuk menutup Bottom Sheet tanpa memilih. Lalu, bottom sheet membutuhkan coroutine untuk hide karena menggunakan animasi suspend function mereka digunakan untuk menutup bottom sheet dengan animasi tanpa nge-freeze UI. Oleh karena itu mengapa terdapat code di bawah ini.
+
+```kotlin
+scope.launch { sheetState.hide() }
+```
+
+## Glosarium
+
+- Coroutine = cara menjalankan proses asynchronous (tidak blocking) dengan kode yang tetap kelihatan seperti synchronous. Lebih mudahnya adalah menjalankan tugas di background tanpa nge-freeze UI.
+- Suspend function = fungsi yang bisa “ditunda” tanpa blocking thread. Suspend function ini hanya bisa dipanggil dari coroutine (launch, async) atau suspend function lain.
 
 ## Resources
 
