@@ -35,6 +35,9 @@ class AuthVM(
     private val _uiState = MutableStateFlow(AuthUiState())
     val uiState = _uiState.asStateFlow()
 
+    private val _navigateToHome = MutableSharedFlow<Unit>()
+    val navigateToHome = _navigateToHome.asSharedFlow()
+
     private fun validateForm() {
         // validate email and password
         _uiState.update {
@@ -98,6 +101,7 @@ class AuthVM(
                     password = password
                 )
             }
+            _navigateToHome.emit(Unit)
         } catch (e: Exception) {
             _messageEvent.emit(e.message ?: "Terjadi kesalahan tak terduga!")
         } finally {
@@ -120,6 +124,7 @@ class AuthVM(
                     password = password
                 )
             }
+            _navigateToHome.emit(Unit)
         } catch (e: Exception) {
             _messageEvent.emit(e.message ?: "Terjadi kesalahan tak terduga!")
         } finally {
