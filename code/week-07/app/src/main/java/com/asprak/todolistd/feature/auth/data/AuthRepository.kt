@@ -13,7 +13,7 @@ class AuthRepository {
 
     suspend fun register(name: String, email: String, password: String) {
         delay(2000L)
-        if (Random.Default.nextBoolean()) {
+        if (Random.nextBoolean()) {
             throw Exception("Gagal melakukan registrasi, silakan coba lagi!")
         }
     }

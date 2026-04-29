@@ -7,20 +7,26 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.ContainedLoadingIndicator
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.asprak.todolistd.core.LocalBackStack
+import com.asprak.todolistd.core.Routes
 import com.asprak.todolistd.ui.theme.TodoListTheme
+import kotlinx.coroutines.launch
 
 @Composable
 fun AuthScreen(vm: AuthVM = viewModel(factory = AuthVM.Factory)) {
@@ -28,12 +34,35 @@ fun AuthScreen(vm: AuthVM = viewModel(factory = AuthVM.Factory)) {
 
     val uiState by vm.uiState.collectAsState()
 
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        // event navigation
+        launch {
+            vm.navigateToHome.collect {
+                backStack.add(Routes.ListTodoRoute)
+            }
+        }
+
+        // event error
+        launch {
+            vm.messageEvent.collect { message ->
+                snackbarHostState.showSnackbar(message)
+            }
+        }
+    }
+
     Content(
+        snackbarHostState = snackbarHostState,
         isLogin = uiState.isLogin,
         isLoading = uiState.isLoading,
         name = uiState.name,
         email = uiState.email,
         password = uiState.password,
+        emailError = uiState.emailError,
+        passwordError = uiState.passwordError,
+        nameError = uiState.nameError,
+        confirmPasswordError = uiState.confirmPasswordError,
         confirmPassword = uiState.confirmPassword,
         onChangeName = vm::onChangeName,
         onChangeEmail = vm::onChangeEmail,
@@ -45,18 +74,23 @@ fun AuthScreen(vm: AuthVM = viewModel(factory = AuthVM.Factory)) {
                 true -> vm.login()
                 else -> vm.register()
             }
-        }
+        },
     )
 }
 
 @Composable
 private fun Content(
+    snackbarHostState: SnackbarHostState,
     isLogin: Boolean = true,
     isLoading: Boolean = false,
     name: String = "",
     email: String = "",
     password: String = "",
     confirmPassword: String = "",
+    emailError: String? = null,
+    passwordError: String? = null,
+    nameError: String? = null,
+    confirmPasswordError: String? = null,
     onChangeName: (String) -> Unit = {},
     onChangeEmail: (String) -> Unit = {},
     onChangePassword: (String) -> Unit = {},
@@ -71,6 +105,9 @@ private fun Content(
                     Text("Autentikasi")
                 }
             )
+        },
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) {
         Column(
@@ -88,23 +125,39 @@ private fun Content(
                         placeholder = {
                             Text("Nama lengkap")
                         },
+                        isError = nameError != null,
+                        supportingText = {
+                            if (nameError != null) Text(nameError)
+                        },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading
                     )
                 TextField(
                     value = email,
                     onValueChange = onChangeEmail,
-                    placeholder = {
-                        Text("Alamat email")
-                    },
+                    placeholder = { Text("Alamat email") },
                     modifier = Modifier.fillMaxWidth(),
-                    enabled = !isLoading
+                    enabled = !isLoading,
+
+                    isError = emailError != null,
+
+                    supportingText = {
+                        if (emailError != null) {
+                            Text(emailError)
+                        }
+                    }
                 )
                 TextField(
                     value = password,
                     onValueChange = onChangePassword,
                     placeholder = {
                         Text("Kata sandi")
+                    },
+                    isError = passwordError != null,
+                    supportingText = {
+                        if (passwordError != null) {
+                            Text(passwordError)
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     enabled = !isLoading
@@ -115,6 +168,10 @@ private fun Content(
                         onValueChange = onChangeConfirmPassword,
                         placeholder = {
                             Text("Konfirmasi kata sandi")
+                        },
+                        isError = confirmPasswordError != null,
+                        supportingText = {
+                            if (confirmPasswordError != null) Text(confirmPasswordError)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading
@@ -165,7 +222,9 @@ private fun Content(
 @Composable
 private fun LoginPreview() {
     TodoListTheme {
-        Content()
+        Content(
+            snackbarHostState = remember { SnackbarHostState() },
+        )
     }
 }
 
@@ -174,6 +233,7 @@ private fun LoginPreview() {
 private fun LoginLoadingPreview() {
     TodoListTheme {
         Content(
+            snackbarHostState = remember { SnackbarHostState() },
             isLoading = true
         )
     }
@@ -184,6 +244,7 @@ private fun LoginLoadingPreview() {
 private fun RegisterPreview() {
     TodoListTheme {
         Content(
+            snackbarHostState = remember { SnackbarHostState() },
             isLogin = false
         )
     }
@@ -194,6 +255,7 @@ private fun RegisterPreview() {
 private fun RegisterLoadingPreview() {
     TodoListTheme {
         Content(
+            snackbarHostState = remember { SnackbarHostState() },
             isLoading = true,
             isLogin = false
         )
