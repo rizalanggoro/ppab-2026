@@ -160,6 +160,8 @@ fun StatelessCounter(
 
 Berikut Hasilnya:
 
-![s3](/week-07/img/s5.gif)
+![s4](/week-07/img/s5.gif)
 
 Dengan memindahkan state ke parent, kita jadi lebih leluasa mengontrol logikanya dari luar. Misalnya, Anda bisa mengubah aksi `count++` menjadi `count *= 2` agar setiap klik menghasilkan dobel poin.
+
+![s5](/week-07/img/s6.svg)

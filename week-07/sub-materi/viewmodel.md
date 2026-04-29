@@ -165,7 +165,7 @@ fun ArticleItem(article: Article) {
 
 Berikut Hasilnya:
 
-![s1](/week-07/img/v1.png)
+![v1](/week-07/img/v1.png)
 
 ---
 
@@ -175,3 +175,5 @@ Berikut Hasilnya:
 - Gunakan `viewModel()` untuk ambil ViewModel di Composable.
 - Jangan simpan Composition-dependent state (misal: `SnackbarHostState`, `ScrollState`) di ViewModel.
 - Kirim **data** saja ke stateless composable child.
+
+![v2](/week-07/img/v2.svg)
