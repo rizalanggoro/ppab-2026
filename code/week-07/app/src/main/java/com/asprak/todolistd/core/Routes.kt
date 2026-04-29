@@ -6,6 +6,12 @@ import kotlinx.serialization.Serializable
 @Serializable
 object Routes {
     @Serializable
+    data object TestRoute : NavKey
+
+    @Serializable
+    data object IncrementTestRoute : NavKey
+
+    @Serializable
     data object AuthRoute : NavKey
 
     @Serializable
