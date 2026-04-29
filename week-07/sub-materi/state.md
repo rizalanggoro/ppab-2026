@@ -4,12 +4,12 @@ State adalah komponen yang menyimpan nilai yang dapat berubah dari waktu ke wakt
 
 Ada banyak contoh penerapan dari State, seperti:
 
-* Mengaktifkan button ketika input yang diberikan valid;
-* Menentukan radio button yang dipilih;
-* Menampilkan dropdown saat action menu dipilih;
-* Menampilkan loading ketika memuat data;
-* Menentukan posisi scroll pada list; dan
-* Menentukan halaman yang tampil ketika menu dipilih.
+- Mengaktifkan button ketika input yang diberikan valid;
+- Menentukan radio button yang dipilih;
+- Menampilkan dropdown saat action menu dipilih;
+- Menampilkan loading ketika memuat data;
+- Menentukan posisi scroll pada list; dan
+- Menentukan halaman yang tampil ketika menu dipilih.
 
 ---
 
@@ -84,9 +84,9 @@ Selain `remember`, ada juga `rememberSaveable`. Bedanya, `rememberSaveable` akan
 
 Berikut perbandingannya:
 
-| Tanpa rememberSaveable               | Dengan rememberSaveable            |
-| ------------------------------------- | --------------------------------- |
-| ![s3](/week-07/img/s3.gif)|![s4](/week-07/img/s4.gif)|
+| Tanpa rememberSaveable     | Dengan rememberSaveable    |
+| -------------------------- | -------------------------- |
+| ![s3](/week-07/img/s3.gif) | ![s4](/week-07/img/s4.gif) |
 
 ---
 
@@ -124,8 +124,8 @@ Kode di atas adalah contoh Stateful Composable yang menampilkan counter (penghit
 
 Untuk mengubahnya menjadi Stateless dengan State Hoisting, kita pindahkan variabel state ke parent dan gunakan dua parameter berikut di dalam composable-nya:
 
-* `value: T`, yaitu nilai state yang akan ditampilkan.
-* `onEvent: (T) -> Unit`, yaitu lambda yang menampung event perubahan.
+- `value: T`, yaitu nilai state yang akan ditampilkan.
+- `onEvent: (T) -> Unit`, yaitu lambda yang menampung event perubahan.
 
 Berikut implementasinya:
 
@@ -160,6 +160,6 @@ fun StatelessCounter(
 
 Berikut Hasilnya:
 
-<img src="/week-07/img/s5.gif" alt="s5" width="200"/>
+![s3](/week-07/img/s5.gif)
 
 Dengan memindahkan state ke parent, kita jadi lebih leluasa mengontrol logikanya dari luar. Misalnya, Anda bisa mengubah aksi `count++` menjadi `count *= 2` agar setiap klik menghasilkan dobel poin.

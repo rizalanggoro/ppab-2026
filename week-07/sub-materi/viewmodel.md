@@ -1,10 +1,9 @@
 # ViewModel Pada Jetpack Compose
 
-
 ViewModel adalah bagian dari **Architecture Component** di Android yang bertugas untuk:
 
-* Mengambil data dari data layer (misal: Repository).
-* Menyiapkan data untuk ditampilkan di layar (UI).
+- Mengambil data dari data layer (misal: Repository).
+- Menyiapkan data untuk ditampilkan di layar (UI).
 
 ViewModel akan **mempertahankan state** walau terjadi configuration change seperti **rotasi layar**.
 
@@ -12,16 +11,17 @@ ViewModel akan **mempertahankan state** walau terjadi configuration change seper
 
 ## Hal yang Perlu Diperhatikan
 
-* **ViewModel punya lifecycle lebih panjang** dari Composable ➔ Hindari menyimpan state seperti `ScaffoldState` atau `SnackbarHostState` di ViewModel (bisa menyebabkan memory leak).
-* Gunakan ViewModel **hanya di screen level** (bukan di component kecil).
-* Kirim **data** ke composable child, jangan kirim **ViewModel object** langsung.
-* Pisahkan antara **Stateful Composable** (yang gunakan ViewModel) dan **Stateless Composable** (hanya menerima data).
+- **ViewModel punya lifecycle lebih panjang** dari Composable ➔ Hindari menyimpan state seperti `ScaffoldState` atau `SnackbarHostState` di ViewModel (bisa menyebabkan memory leak).
+- Gunakan ViewModel **hanya di screen level** (bukan di component kecil).
+- Kirim **data** ke composable child, jangan kirim **ViewModel object** langsung.
+- Pisahkan antara **Stateful Composable** (yang gunakan ViewModel) dan **Stateless Composable** (hanya menerima data).
 
 ---
 
 ## Contoh Implementasi ViewModel
 
 Tambahkan dependencies di dalam files build.gradle.kts bagian module app terlebih dahulu, kemudian jangan lupa di sinkronkan.
+
 ```
 dependencies {
     ...
@@ -163,15 +163,15 @@ fun ArticleItem(article: Article) {
 }
 ```
 
-Berikut Hasilnya: 
+Berikut Hasilnya:
 
-<img src="/week-07/img/v1.png" alt="v1" width="300"/>
+![s1](/week-07/img/v1.png)
 
 ---
 
 ## Best Practice ViewModel + Compose
 
-* Gunakan **StateFlow** atau **LiveData** untuk expose state.
-* Gunakan `viewModel()` untuk ambil ViewModel di Composable.
-* Jangan simpan Composition-dependent state (misal: `SnackbarHostState`, `ScrollState`) di ViewModel.
-* Kirim **data** saja ke stateless composable child.
+- Gunakan **StateFlow** atau **LiveData** untuk expose state.
+- Gunakan `viewModel()` untuk ambil ViewModel di Composable.
+- Jangan simpan Composition-dependent state (misal: `SnackbarHostState`, `ScrollState`) di ViewModel.
+- Kirim **data** saja ke stateless composable child.
