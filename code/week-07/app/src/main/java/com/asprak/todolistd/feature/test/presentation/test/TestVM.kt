@@ -39,7 +39,7 @@ class TestVM(
         }
     }
 
-    var counter3 by mutableIntStateOf(0)
+    var counter3 by mutableIntStateOf(0) // bukan best practice
 
     var counter4 by mutableIntStateOf(0)
         private set
@@ -49,12 +49,14 @@ class TestVM(
     }
 
     private var _counter5 = MutableStateFlow(0)
-    val counter5 = _counter5.asStateFlow()
+    val counter5 = _counter5.asStateFlow() // getter
 
     fun incrementCounter5() {
         _counter5.value++
+//        _counter5.update { it + 1 }
     }
 
+    // saran: pakai yang ini
     private var _uiState = MutableStateFlow(TestUiState())
     val uiState = _uiState.asStateFlow()
 
@@ -63,6 +65,10 @@ class TestVM(
             it.copy(counter6 = it.counter6 + 1)
         }
     }
+
+//    fun toggleIsLoading() {
+//        _uiState.update { it.copy(isLoading = true) }
+//    }
 
     private var _counter7 = MutableStateFlow(0)
     val counter7 = _counter7.asStateFlow()
@@ -82,7 +88,7 @@ class TestVM(
         _counter8.value++
     }
 
-    private var _messageEvent = MutableSharedFlow<String>(replay = 0)
+    private var _messageEvent = MutableSharedFlow<String>()
     val messageEvent = _messageEvent.asSharedFlow()
 
     fun triggerMessageEvent() = viewModelScope.launch {

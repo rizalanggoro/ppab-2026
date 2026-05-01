@@ -37,7 +37,10 @@ import com.asprak.todolistd.core.LocalBackStack
 import com.asprak.todolistd.core.Routes
 
 @Composable
-fun TestScreen(vm: TestVM = viewModel(factory = TestVM.Factory)) {
+fun TestScreen(
+    vm: TestVM = viewModel(factory = TestVM.Factory),
+    vm2: Test2VM = viewModel()
+) {
     val backStack = LocalBackStack.current
     val hostState = remember { SnackbarHostState() }
 
@@ -46,8 +49,10 @@ fun TestScreen(vm: TestVM = viewModel(factory = TestVM.Factory)) {
 
     val counter5 by vm.counter5.collectAsState()
     val uiState by vm.uiState.collectAsState()
+
     val counter7 by vm.counter7.collectAsState()
     val counter7a by vm.counter7a.collectAsState()
+
     val counter8 by vm.counter8.collectAsState()
     val counter8a by vm.counter8a.collectAsState()
     val counter9 by vm.counter9.collectAsState()
@@ -65,21 +70,27 @@ fun TestScreen(vm: TestVM = viewModel(factory = TestVM.Factory)) {
         onClickIncrementCounter1 = { counter1++ },
         counter2 = counter2,
         onClickIncrementCounter2 = { counter2++ },
+
         counter3 = vm.counter3,
         onClickIncrementCounter3 = { vm.counter3++ },
         counter4 = vm.counter4,
-        onClickIncrementCounter4 = vm::incrementCounter4,
+        onClickIncrementCounter4 = { vm.incrementCounter4() },
+
         counter5 = counter5,
         onClickIncrementCounter5 = vm::incrementCounter5,
         counter6 = uiState.counter6,
         onClickIncrementCounter6 = vm::incrementCounter6,
+
         counter7 = counter7,
         counter7a = counter7a,
         onClickIncrementCounter7 = vm::incrementCounter7,
+
         counter8 = counter8,
         counter8a = counter8a,
         onClickIncrementCounter8 = vm::incrementCounter8,
+
         onClickTriggerMessageEvent = vm::triggerMessageEvent,
+
         hostState = hostState,
         counter9 = counter9,
         onClickIncrement = {
