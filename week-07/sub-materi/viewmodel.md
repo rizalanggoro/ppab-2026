@@ -20,7 +20,7 @@ ViewModel akan **mempertahankan state** walau terjadi configuration change seper
 
 ## Contoh Implementasi ViewModel
 
-Tambahkan dependencies di dalam files build.gradle.kts bagian module app terlebih dahulu, kemudian jangan lupa di sinkronkan.
+Tambahkan dependencies di dalam files build.gradle.kts bagian module app terlebih dahulu, kemudian jangan lupa di sinkronkan. **Implementasi telah didemokan di kelas online pada jadwal praktikum pertemuan ke 6, untuk remind lagi bisa belajar di code/week-06**
 
 ```
 dependencies {

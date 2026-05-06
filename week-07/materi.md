@@ -1,4 +1,4 @@
-# State, ViewModel, dan Compose Navigation
+# State dan ViewModel
 
 Pada pertemuan minggu ini, kita akan membahas materi penting yang perlu dipahami dalam pengembangan aplikasi Android menggunakan Jetpack Compose, yaitu:
 
