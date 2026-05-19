@@ -1,285 +1,444 @@
-# Dependency Injection dengan Koin
+# Dependency Injection di Android: Hilt vs Koin
 
-Koin adalah framework dependency injection yang ringan dan pragmatis untuk Kotlin. Berbeda dengan Dagger/Hilt yang berbasis code generation pada waktu kompilasi, Koin bekerja sepenuhnya pada runtime menggunakan Kotlin DSL yang bersih dan mudah dibaca. Koin tidak memerlukan anotasi yang rumit, tidak menghasilkan kode tambahan, dan tidak membutuhkan reflection — menjadikannya salah satu pilihan DI paling sederhana untuk proyek Android dan Kotlin Multiplatform.
+## Apa Itu Dependency Injection?
 
-Koin menyediakan cara deklaratif untuk mendefinisikan dependensi menggunakan **modul**, lalu **menyuntikkannya** ke dalam kelas Android seperti Activity, Fragment, ViewModel, dan lainnya.
+Sebelum masuk ke Hilt dan Koin, kita perlu paham dulu masalah yang ingin diselesaikan.
 
----
+Bayangkan kamu punya aplikasi sederhana. Ada kelas `UserRepository` yang butuh `ApiService` untuk mengambil data dari internet, dan `ApiService` itu butuh `OkHttpClient` agar bisa terkoneksi ke jaringan.
 
-## Menambahkan Dependensi
+Tanpa DI, kamu harus menulis kode seperti ini di setiap Activity yang membutuhkannya:
 
-Tambahkan dependensi Koin ke file `app/build.gradle` Anda:
+```kotlin
+class HomeActivity : AppCompatActivity() {
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
-<details>
-<summary>Groovy</summary>
+        val okHttpClient = OkHttpClient()              // buat sendiri
+        val apiService   = ApiService(okHttpClient)    // rakitin sendiri
+        val userRepo     = UserRepository(apiService)  // rakitin lagi
 
-```groovy
-dependencies {
-    // Koin untuk Android
-    implementation "io.insert-koin:koin-android:4.0.0"
-
-    // Koin untuk Jetpack ViewModel
-    implementation "io.insert-koin:koin-androidx-viewmodel:4.0.0"
-
-    // Koin untuk Jetpack Compose (opsional)
-    implementation "io.insert-koin:koin-androidx-compose:4.0.0"
-
-    // Koin untuk testing (opsional)
-    testImplementation "io.insert-koin:koin-test:4.0.0"
-    testImplementation "io.insert-koin:koin-test-junit4:4.0.0"
+        userRepo.getUsers()
+    }
 }
 ```
 
-</details>
+Sekarang bayangkan kamu punya 10 Activity yang semuanya butuh `UserRepository`. Kamu harus menulis tiga baris "rakitan" itu di setiap Activity. Kalau suatu hari `OkHttpClient` butuh parameter tambahan, kamu harus ubah di 10 tempat sekaligus. Ini yang disebut kode duplikat, dan itu masalah besar di proyek nyata.
 
-<details>
-<summary>Kotlin</summary>
+**Intinya: DI adalah teknik di mana objek tidak membuat dependensinya sendiri, tapi menerima dependensi dari luar. Kamu bilang "saya butuh ini", sistem DI yang mengurus selebihnya.**
+
+Di dunia Android ada dua library DI yang paling populer: **Hilt** (dari Google) dan **Koin** (dari komunitas open source). Keduanya menyelesaikan masalah yang sama, tapi dengan pendekatan yang berbeda.
+
+---
+
+# BAGIAN 1 — HILT
+
+## Apa Itu Hilt?
+
+Hilt adalah library DI resmi dari Google untuk Android. Hilt dibangun di atas Dagger — framework DI yang sudah lama ada dan sangat powerful, tapi juga dikenal rumit dan butuh banyak kode tambahan. Hilt hadir untuk menyederhanakan Dagger khusus untuk kebutuhan Android.
+
+**Cara kerja Hilt: berbasis anotasi dan code generation.**
+
+Hilt membaca anotasi yang kamu tulis (seperti `@HiltAndroidApp`, `@AndroidEntryPoint`, `@Inject`) saat proses build, lalu secara otomatis menghasilkan kode Dagger di balik layar. Jadi ketika aplikasi berjalan, semua sudah siap.
+
+---
+
+## Setup Hilt
+
+**Langkah 1** — Tambahkan plugin di `build.gradle` level project (root):
 
 ```kotlin
+// build.gradle.kts (Project level)
+plugins {
+    id("com.google.dagger.hilt.android") version "2.56.2" apply false
+}
+```
+
+**Langkah 2** — Tambahkan plugin dan dependensi di `build.gradle` level app:
+
+```kotlin
+// build.gradle.kts (App level)
+plugins {
+    id("com.google.devtools.ksp")
+    id("com.google.dagger.hilt.android")
+}
+
+dependencies {
+    implementation("com.google.dagger:hilt-android:2.56.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
+}
+```
+
+**Langkah 3** — Aktifkan Java 8:
+
+```kotlin
+android {
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+}
+```
+
+---
+
+## Memulai Hilt di Kelas Application
+
+Setiap aplikasi yang menggunakan Hilt wajib memiliki kelas `Application` yang diberi anotasi `@HiltAndroidApp`:
+
+```kotlin
+@HiltAndroidApp
+class MyApplication : Application() {
+    // Tidak perlu isi apa-apa di sini.
+    // Hilt otomatis menyiapkan semua container dependensi.
+}
+```
+
+Jangan lupa daftarkan kelas ini di `AndroidManifest.xml`:
+
+```xml
+<application
+    android:name=".MyApplication"
+    ...>
+</application>
+```
+
+Anotasi `@HiltAndroidApp` ini ibarat "tombol ON" untuk Hilt. Begitu dipasang, Hilt mulai menyiapkan semua container yang diperlukan untuk menyimpan dan mengelola dependensi.
+
+---
+
+## Menyuntikkan Dependensi ke Activity dan Fragment
+
+Untuk bisa menerima injeksi di Activity, tambahkan anotasi `@AndroidEntryPoint`:
+
+```kotlin
+@AndroidEntryPoint
+class HomeActivity : AppCompatActivity() {
+
+    @Inject lateinit var userRepository: UserRepository
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        // userRepository sudah siap dipakai di sini
+        userRepository.getUsers()
+    }
+}
+```
+
+Dua hal yang perlu diperhatikan:
+
+- `@AndroidEntryPoint` memberitahu Hilt bahwa kelas ini siap menerima injeksi
+- `@Inject` menandai field mana yang ingin diisi oleh Hilt
+- Field yang di-inject **tidak boleh** `private`
+
+Untuk Fragment caranya sama:
+
+```kotlin
+@AndroidEntryPoint
+class HomeFragment : Fragment() {
+
+    @Inject lateinit var userRepository: UserRepository
+}
+```
+
+> **Catatan:** Kalau kamu pakai `@AndroidEntryPoint` di Fragment, maka Activity yang menampung fragment itu juga harus diberi `@AndroidEntryPoint`.
+
+---
+
+## Memberitahu Hilt Cara Membuat Objek
+
+Hilt perlu tahu cara membuat objek yang akan diinjeksikan. Ada tiga cara utama.
+
+### Cara 1 — Constructor Injection
+
+Cara paling sederhana: tambahkan `@Inject constructor` pada kelas yang ingin kamu buat:
+
+```kotlin
+class UserRepository @Inject constructor(
+    private val apiService: ApiService
+) {
+    fun getUsers() = apiService.fetchUsers()
+}
+```
+
+Dengan ini, Hilt tahu: "kalau ada yang minta `UserRepository`, buat pakai constructor ini, dan untuk `ApiService`-nya cari sendiri dari yang sudah terdaftar."
+
+### Cara 2 — Module dengan @Provides
+
+Cara ini dipakai ketika kamu **tidak bisa** menambahkan `@Inject constructor` — misalnya untuk kelas dari library eksternal seperti Retrofit atau OkHttpClient. Kamu tidak bisa ubah kode library orang lain, jadi kamu buat modul yang menjelaskan cara membuatnya:
+
+```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideApiService(okHttpClient: OkHttpClient): ApiService {
+        return Retrofit.Builder()
+            .baseUrl("https://api.example.com")
+            .client(okHttpClient)
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+            .create(ApiService::class.java)
+    }
+}
+```
+
+Penjelasan anotasi:
+
+- `@Module` — menandai kelas ini sebagai modul Hilt
+- `@InstallIn(SingletonComponent::class)` — modul ini berlaku di seluruh aplikasi
+- `@Provides` — menandai fungsi sebagai penyedia dependensi
+- `@Singleton` — Hilt hanya akan membuat satu instance dan dipakai ulang di mana saja
+
+### Cara 3 — @Binds untuk Interface
+
+Kalau kamu punya interface dan ingin memberitahu Hilt implementasi mana yang dipakai:
+
+```kotlin
+interface UserRepository {
+    fun getUsers(): List<User>
+}
+
+class UserRepositoryImpl @Inject constructor(
+    private val apiService: ApiService
+) : UserRepository {
+    override fun getUsers() = apiService.fetchUsers()
+}
+
+@Module
+@InstallIn(ActivityComponent::class)
+abstract class RepositoryModule {
+
+    @Binds
+    abstract fun bindUserRepository(
+        impl: UserRepositoryImpl
+    ): UserRepository
+}
+```
+
+---
+
+## Scope di Hilt: Berapa Lama Objek Hidup?
+
+Secara default, setiap kali Hilt diminta membuat objek, dia akan membuat objek **baru**. Tapi kadang kita mau objek yang sama dipakai di mana saja. Di sinilah scope berperan.
+
+| Anotasi            | Berlaku di       | Objek hidup selama |
+| ------------------ | ---------------- | ------------------ |
+| `@Singleton`       | Seluruh aplikasi | Aplikasi berjalan  |
+| `@ActivityScoped`  | Satu Activity    | Activity aktif     |
+| `@FragmentScoped`  | Satu Fragment    | Fragment aktif     |
+| `@ViewModelScoped` | Satu ViewModel   | ViewModel aktif    |
+
+Contoh penggunaan:
+
+```kotlin
+// OkHttpClient dibuat sekali, dipakai di seluruh aplikasi
+@Singleton
+@Provides
+fun provideOkHttpClient(): OkHttpClient { ... }
+
+// AnalyticsTracker dibuat baru untuk setiap Activity
+@ActivityScoped
+class AnalyticsTracker @Inject constructor() { ... }
+```
+
+---
+
+## Inject ViewModel dengan Hilt
+
+```kotlin
+// Di ViewModel
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val userRepository: UserRepository
+) : ViewModel() {
+
+    fun loadUsers() = userRepository.getUsers()
+}
+```
+
+```kotlin
+// Di Activity
+@AndroidEntryPoint
+class HomeActivity : AppCompatActivity() {
+
+    private val viewModel: HomeViewModel by viewModels()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        viewModel.loadUsers()
+    }
+}
+```
+
+---
+
+# BAGIAN 2 — KOIN
+
+## Apa Itu Koin?
+
+Koin adalah framework DI yang dibuat khusus untuk Kotlin. Berbeda dengan Hilt yang mengandalkan anotasi dan code generation, Koin bekerja dengan cara yang jauh lebih sederhana: menggunakan **Kotlin DSL** — yaitu sintaks Kotlin yang ditulis secara deklaratif seperti konfigurasi biasa.
+
+**Cara kerja Koin: berbasis DSL dan runtime resolution.**
+
+Koin tidak menghasilkan kode tambahan saat build. Tidak ada anotasi yang rumit. Semua dependensi didefinisikan menggunakan fungsi-fungsi Kotlin biasa di dalam blok `module { }`, dan semuanya berjalan di runtime.
+
+---
+
+## Setup Koin
+
+Setup Koin jauh lebih simpel dibanding Hilt — tidak perlu plugin Gradle tambahan di level project:
+
+```kotlin
+// build.gradle.kts (App level)
 dependencies {
     // Koin untuk Android
     implementation("io.insert-koin:koin-android:4.0.0")
 
-    // Koin untuk Jetpack ViewModel
+    // Koin untuk ViewModel
     implementation("io.insert-koin:koin-androidx-viewmodel:4.0.0")
-
-    // Koin untuk Jetpack Compose (opsional)
-    implementation("io.insert-koin:koin-androidx-compose:4.0.0")
-
-    // Koin untuk testing (opsional)
-    testImplementation("io.insert-koin:koin-test:4.0.0")
-    testImplementation("io.insert-koin:koin-test-junit4:4.0.0")
 }
 ```
-
-</details>
-
-> **Catatan:** Koin tidak memerlukan plugin Gradle tambahan di root `build.gradle`. Cukup tambahkan dependensi di level modul aplikasi saja.  
-> Koin sepenuhnya ditulis dalam Kotlin dan memanfaatkan fitur-fitur Kotlin seperti lambda, extension functions, dan DSL — sehingga proyek Anda harus menggunakan Kotlin.
 
 ---
 
 ## Memulai Koin di Kelas Application
 
-Semua aplikasi yang menggunakan Koin harus menginisialisasi Koin di dalam kelas `Application` menggunakan fungsi `startKoin`:
-
 ```kotlin
-class ExampleApplication : Application() {
+class MyApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
 
         startKoin {
-            // Menyediakan konteks Android ke Koin
-            androidContext(this@ExampleApplication)
-
-            // Mendaftarkan semua modul dependensi
-            modules(analyticsModule, networkModule)
+            androidContext(this@MyApplication)           // berikan context aplikasi ke Koin
+            modules(networkModule, repositoryModule)     // daftarkan semua modul
         }
     }
 }
 ```
 
-Fungsi `startKoin` menerima blok konfigurasi di mana Anda:
-
-- Memberikan `androidContext()` agar Koin dapat menyediakan `Context` secara otomatis.
-- Mendaftarkan satu atau lebih modul menggunakan `modules(...)`.
-
-> **Catatan:** Jangan lupa mendaftarkan kelas `Application` kustom Anda di `AndroidManifest.xml`:
->
-> ```xml
-> <application
->     android:name=".ExampleApplication"
->     ...>
-> </application>
-> ```
+Di sini tidak ada anotasi seperti `@HiltAndroidApp`. Koin cukup dipanggil dengan fungsi `startKoin { }` di dalam `onCreate`. Lebih terasa seperti kode Kotlin biasa.
 
 ---
 
-## Mendefinisikan Modul Koin
+## Mendefinisikan Dependensi di Modul Koin
 
-Di Koin, semua dependensi didefinisikan di dalam **modul**. Modul adalah unit logis tempat Anda mendeklarasikan bagaimana setiap tipe objek dibuat dan disediakan.
-
-### Fungsi `module { }`
-
-Gunakan fungsi `module { }` untuk membuat modul Koin:
-
-```kotlin
-val analyticsModule = module {
-    // Definisi dependensi di sini
-}
-```
-
-Di dalam blok `module`, Anda menggunakan keyword seperti `single`, `factory`, `viewModel`, dan `bind` untuk mendeklarasikan dependensi.
-
----
-
-## Cara Menyediakan Dependensi
-
-### `factory` — Instance Baru Setiap Kali
-
-Gunakan `factory` ketika Anda ingin Koin membuat instance baru setiap kali dependensi diminta:
-
-```kotlin
-val analyticsModule = module {
-    factory { AnalyticsAdapter(get()) }
-}
-```
-
-Fungsi `get()` di dalam blok digunakan untuk mengambil dependensi lain yang sudah terdaftar di Koin. Koin akan secara otomatis menyediakan `AnalyticsService` jika sudah didefinisikan di modul manapun.
-
-### `single` — Instance Tunggal (Singleton)
-
-Gunakan `single` ketika Anda ingin Koin hanya membuat satu instance dan menggunakannya kembali sepanjang siklus hidup aplikasi:
+Semua cara membuat objek didefinisikan di dalam blok `module { }`:
 
 ```kotlin
 val networkModule = module {
+
+    // single = dibuat sekali, dipakai ulang (seperti @Singleton di Hilt)
+    single {
+        OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .build()
+    }
+
     single {
         Retrofit.Builder()
-            .baseUrl("https://example.com")
+            .baseUrl("https://api.example.com")
+            .client(get())   // get() = minta OkHttpClient yang sudah terdaftar
+            .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(AnalyticsService::class.java)
+            .create(ApiService::class.java)
+    }
+}
+
+val repositoryModule = module {
+
+    // factory = dibuat baru setiap kali diminta
+    factory { UserRepository(get()) }   // get() = minta ApiService
+}
+```
+
+Tiga keyword paling penting di Koin:
+
+- `single { }` — objek dibuat sekali dan di-cache (setara `@Singleton` di Hilt)
+- `factory { }` — objek dibuat baru setiap kali ada permintaan
+- `get()` — perintah ke Koin untuk mengambil dependensi lain yang sudah terdaftar
+
+---
+
+## Menyuntikkan Dependensi di Activity dan Fragment
+
+Tidak perlu anotasi `@AndroidEntryPoint` seperti di Hilt. Cukup gunakan delegasi `by inject()`:
+
+```kotlin
+class HomeActivity : AppCompatActivity() {
+
+    // by inject() bersifat lazy — baru diambil saat pertama kali diakses
+    private val userRepository: UserRepository by inject()
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        userRepository.getUsers()
     }
 }
 ```
 
-Ini setara dengan `@Singleton` di Hilt. Instance dibuat satu kali dan di-cache selama `KoinApplication` masih aktif.
-
-### `viewModel` — Untuk Jetpack ViewModel
-
-Gunakan `viewModel` untuk mendefinisikan ViewModel agar dapat diintegrasikan dengan siklus hidup Android:
+Di Fragment pun caranya sama:
 
 ```kotlin
+class HomeFragment : Fragment() {
+
+    private val userRepository: UserRepository by inject()
+}
+```
+
+---
+
+## Inject ViewModel dengan Koin
+
+```kotlin
+// Di modul
 val appModule = module {
-    viewModel { ExampleViewModel(get()) }
+    viewModel { HomeViewModel(get()) }
 }
 ```
 
----
-
-## Menyuntikkan Dependensi ke Kelas Android
-
-### Inject di Activity
-
-Gunakan delegasi `by inject()` untuk menyuntikkan dependensi secara lazy di dalam Activity:
-
 ```kotlin
-class ExampleActivity : AppCompatActivity() {
+// Di Activity
+class HomeActivity : AppCompatActivity() {
 
-    // Lazy injection — dependensi diminta saat pertama kali diakses
-    private val analytics: AnalyticsAdapter by inject()
+    private val viewModel: HomeViewModel by viewModel()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // analytics sudah siap digunakan
-        analytics.track("screen_open")
+        viewModel.loadUsers()
     }
-}
-```
-
-### Inject di Fragment
-
-Cara yang sama berlaku untuk Fragment:
-
-```kotlin
-class ExampleFragment : Fragment() {
-
-    private val analytics: AnalyticsAdapter by inject()
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        analytics.track("fragment_open")
-    }
-}
-```
-
-### Inject ViewModel di Activity
-
-Gunakan delegasi `by viewModel()` untuk menyuntikkan ViewModel:
-
-```kotlin
-class ExampleActivity : AppCompatActivity() {
-
-    private val viewModel: ExampleViewModel by viewModel()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.loadData()
-    }
-}
-```
-
-### Inject ViewModel di Fragment
-
-```kotlin
-class ExampleFragment : Fragment() {
-
-    // ViewModel milik fragment ini sendiri
-    private val viewModel: ExampleViewModel by viewModel()
-
-    // ViewModel yang dibagikan dengan Activity induk
-    private val sharedViewModel: SharedViewModel by activityViewModel()
-}
-```
-
-> **Catatan:** `by inject()` bersifat lazy — dependensi baru dibuat/diambil saat pertama kali properti diakses. Jika Anda ingin mengambil dependensi secara langsung (eager), gunakan `val analytics = get<AnalyticsAdapter>()` di dalam fungsi seperti `onCreate`.
-
----
-
-## Menyuntikkan Interface
-
-Untuk menyuntikkan interface, Anda perlu memberi tahu Koin implementasi mana yang harus digunakan. Gunakan keyword `bind` atau deklarasikan dengan tipe interface secara eksplisit:
-
-### Cara 1: Menggunakan `bind`
-
-```kotlin
-val analyticsModule = module {
-    single { AnalyticsServiceImpl(get()) } bind AnalyticsService::class
-}
-```
-
-### Cara 2: Deklarasi Tipe Eksplisit
-
-```kotlin
-val analyticsModule = module {
-    single<AnalyticsService> { AnalyticsServiceImpl(get()) }
-}
-```
-
-Kedua cara ini memberitahu Koin bahwa ketika tipe `AnalyticsService` diminta, Koin akan menyediakan instance `AnalyticsServiceImpl`.
-
-Contoh kelas yang diinjeksikan:
-
-```kotlin
-class AnalyticsAdapter(private val service: AnalyticsService) {
-    fun track(event: String) = service.send(event)
-}
-
-interface AnalyticsService {
-    fun send(event: String)
-}
-
-class AnalyticsServiceImpl(private val context: Context) : AnalyticsService {
-    override fun send(event: String) { /* implementasi */ }
-}
-```
-
-Modul:
-
-```kotlin
-val analyticsModule = module {
-    single<AnalyticsService> { AnalyticsServiceImpl(androidContext()) }
-    factory { AnalyticsAdapter(get()) }
 }
 ```
 
 ---
 
-## Menyediakan Beberapa Binding untuk Tipe yang Sama
+## Menyuntikkan Interface di Koin
 
-Jika Anda membutuhkan beberapa implementasi berbeda dari tipe yang sama, gunakan **named qualifier** di Koin dengan fungsi `named()`:
+Untuk interface, beritahu Koin implementasi mana yang dipakai menggunakan tipe eksplisit:
 
-### Mendefinisikan Qualifier
+```kotlin
+val repositoryModule = module {
+    single<UserRepository> { UserRepositoryImpl(get()) }
+}
+```
+
+Sintaks `single<UserRepository> { UserRepositoryImpl(get()) }` artinya: "kalau ada yang minta tipe `UserRepository`, berikan `UserRepositoryImpl`."
+
+---
+
+## Named Qualifier di Koin
+
+Kalau kamu punya dua objek dengan tipe yang sama, gunakan `named()`:
 
 ```kotlin
 val networkModule = module {
@@ -290,270 +449,182 @@ val networkModule = module {
             .build()
     }
 
-    single(named("other")) {
+    single(named("logging")) {
         OkHttpClient.Builder()
-            .addInterceptor(OtherInterceptor())
+            .addInterceptor(HttpLoggingInterceptor())
             .build()
     }
 }
 ```
 
-### Menggunakan Qualifier saat Inject
-
-Saat menyuntikkan dengan `get()` di dalam modul lain:
+Lalu saat menggunakan:
 
 ```kotlin
-val analyticsModule = module {
-    single {
-        AnalyticsService(
-            okHttpClient = get(named("auth"))
-        )
-    }
-}
-```
-
-Saat menyuntikkan dengan `by inject()` di Activity/Fragment:
-
-```kotlin
-class ExampleActivity : AppCompatActivity() {
+class HomeActivity : AppCompatActivity() {
 
     private val authClient: OkHttpClient by inject(named("auth"))
-    private val otherClient: OkHttpClient by inject(named("other"))
+    private val loggingClient: OkHttpClient by inject(named("logging"))
 }
 ```
 
-> **Praktik terbaik:** Gunakan konstanta string atau enum sebagai nama qualifier untuk menghindari typo:
->
-> ```kotlin
-> object Qualifiers {
->     const val AUTH_CLIENT = "auth"
->     const val OTHER_CLIENT = "other"
-> }
-> ```
+---
+
+# BAGIAN 3 — PERBANDINGAN HILT VS KOIN
+
+Setelah kenal keduanya, sekarang kita bandingkan secara langsung.
+
+## Perbedaan Cara Kerja
+
+| Aspek                            | Hilt                      | Koin                          |
+| -------------------------------- | ------------------------- | ----------------------------- |
+| Pendekatan                       | Anotasi + Code Generation | Kotlin DSL + Runtime          |
+| Kapan error ketahuan             | Saat build (lebih aman)   | Saat aplikasi jalan (runtime) |
+| Kecepatan startup                | Lebih cepat               | Sedikit lebih lambat          |
+| Perlu plugin Gradle ekstra?      | Ya                        | Tidak                         |
+| Dukungan resmi Google?           | Ya                        | Tidak (komunitas open source) |
+| Bisa untuk Kotlin Multiplatform? | Tidak                     | Ya                            |
+| Kemudahan belajar                | Lebih curam               | Lebih mudah                   |
 
 ---
 
-## Menggunakan Context Android
+## Perbedaan Sintaks: Kasus yang Sama
 
-Koin secara otomatis menyediakan `Context` Android setelah Anda memanggil `androidContext()` di `startKoin`. Gunakan fungsi ekstensi berikut di dalam blok modul:
+Berikut perbandingan kode untuk menyelesaikan kasus yang identik.
 
-### `androidContext()` — Application Context
+### Mendefinisikan Singleton
+
+**Hilt:**
 
 ```kotlin
+@Module
+@InstallIn(SingletonComponent::class)
+object NetworkModule {
+
+    @Provides
+    @Singleton
+    fun provideOkHttpClient(): OkHttpClient {
+        return OkHttpClient.Builder().build()
+    }
+}
+```
+
+**Koin:**
+
+```kotlin
+val networkModule = module {
+    single { OkHttpClient.Builder().build() }
+}
+```
+
+---
+
+### Inject di Activity
+
+**Hilt:**
+
+```kotlin
+@AndroidEntryPoint
+class HomeActivity : AppCompatActivity() {
+
+    @Inject lateinit var userRepository: UserRepository
+}
+```
+
+**Koin:**
+
+```kotlin
+class HomeActivity : AppCompatActivity() {
+
+    private val userRepository: UserRepository by inject()
+}
+```
+
+---
+
+### Inject ViewModel
+
+**Hilt:**
+
+```kotlin
+// Di ViewModel
+@HiltViewModel
+class HomeViewModel @Inject constructor(
+    private val repo: UserRepository
+) : ViewModel()
+
+// Di Activity
+private val viewModel: HomeViewModel by viewModels()
+```
+
+**Koin:**
+
+```kotlin
+// Di modul
 val appModule = module {
-    single { AnalyticsServiceImpl(androidContext()) }
+    viewModel { HomeViewModel(get()) }
 }
+
+// Di Activity
+private val viewModel: HomeViewModel by viewModel()
 ```
-
-### `androidApplication()` — Instance Application
-
-```kotlin
-val appModule = module {
-    single { AppDatabase.getInstance(androidApplication()) }
-}
-```
-
-Ini setara dengan `@ApplicationContext` di Hilt. Koin tidak memiliki `@ActivityContext` bawaan karena Koin tidak memiliki konsep component yang ter-scope ke Activity seperti Hilt — namun Anda bisa meneruskan Activity context secara manual melalui parameter.
 
 ---
 
-## Scope di Koin
+### Binding Interface
 
-Secara default:
-
-- `single` → instance dibuat sekali, hidup selama aplikasi aktif (setara `@Singleton`)
-- `factory` → instance baru dibuat setiap kali diminta (tidak ada scope, tidak di-cache)
-
-Untuk scope yang lebih granular, Koin mendukung **Scope** kustom:
-
-### Mendefinisikan Scope Kustom
+**Hilt:**
 
 ```kotlin
-val sessionModule = module {
-    scope(named("UserSession")) {
-        scoped { UserRepository(get()) }
-        scoped { UserPreferences(get()) }
-    }
+@Module
+@InstallIn(ActivityComponent::class)
+abstract class RepositoryModule {
+
+    @Binds
+    abstract fun bindUserRepository(impl: UserRepositoryImpl): UserRepository
 }
 ```
 
-### Membuat dan Menggunakan Scope
+**Koin:**
 
 ```kotlin
-// Membuat scope saat user login
-val userScope = GlobalContext.get().createScope("user_session_id", named("UserSession"))
-
-// Mengambil dependensi dari scope
-val userRepo = userScope.get<UserRepository>()
-
-// Menutup scope saat user logout (dependensi scoped akan dihancurkan)
-userScope.close()
-```
-
-> **Catatan:** Scope kustom berguna untuk kasus seperti sesi pengguna yang harus hidup lebih lama dari satu Activity tetapi tidak sepanjang siklus aplikasi.
-
----
-
-## Parameter Dinamis saat Inject
-
-Koin mendukung pengiriman parameter dinamis ke dalam factory saat dependensi diminta. Ini berguna ketika sebagian argumen baru diketahui saat runtime:
-
-### Mendefinisikan factory dengan Parameter
-
-```kotlin
-val appModule = module {
-    factory { (userId: String) -> UserProfileViewModel(userId, get()) }
-}
-```
-
-### Menyuntikkan dengan Parameter
-
-Di Activity atau Fragment:
-
-```kotlin
-private val profileViewModel: UserProfileViewModel by viewModel { parametersOf("user_123") }
-```
-
-Di dalam modul lain:
-
-```kotlin
-val otherModule = module {
-    factory { get<UserProfileViewModel> { parametersOf("user_456") } }
+val repositoryModule = module {
+    single<UserRepository> { UserRepositoryImpl(get()) }
 }
 ```
 
 ---
 
-## Menyuntikkan Dependensi di Kelas yang Tidak Didukung Secara Native
+## Kapan Pakai Hilt, Kapan Pakai Koin?
 
-Untuk kelas yang tidak memiliki integrasi Koin bawaan (misalnya `ContentProvider`, Worker, atau kelas custom), Anda dapat mengambil dependensi secara manual menggunakan `KoinComponent` atau `GlobalContext`:
+Ini bukan soal mana yang lebih baik secara absolut. Keduanya punya kelebihan yang cocok untuk situasi berbeda.
 
-### Menggunakan `KoinComponent`
+**Pilih Hilt kalau:**
 
-```kotlin
-class ExampleContentProvider : ContentProvider(), KoinComponent {
+- Kamu mengerjakan proyek Android murni (bukan multiplatform)
+- Kamu ingin error ketahuan lebih awal, yaitu saat proses build, bukan saat aplikasi jalan
+- Tim kamu sudah familiar dengan ekosistem Google
+- Proyek kamu besar dan butuh performa terbaik saat runtime
 
-    // Inject melalui delegasi seperti biasa
-    private val analyticsService: AnalyticsService by inject()
+**Pilih Koin kalau:**
 
-    override fun query(...): Cursor {
-        analyticsService.send("query_called")
-        // ...
-    }
-}
-```
-
-### Menggunakan `GlobalContext` (tanpa mewarisi KoinComponent)
-
-```kotlin
-class ExampleWorker(context: Context, params: WorkerParameters) : Worker(context, params) {
-
-    override fun doWork(): Result {
-        // Mengambil dependensi secara manual
-        val analyticsService = GlobalContext.get().get<AnalyticsService>()
-        analyticsService.send("work_started")
-        return Result.success()
-    }
-}
-```
-
-> **Catatan:** Pendekatan `KoinComponent` lebih bersih karena memungkinkan penggunaan delegasi `by inject()`. Gunakan `GlobalContext.get()` hanya jika Anda tidak bisa mengubah hierarki kelas.
+- Kamu baru belajar DI dan ingin sintaks yang lebih mudah dibaca
+- Proyek kamu pakai Kotlin Multiplatform (Android + iOS + Desktop)
+- Kamu ingin setup yang cepat tanpa plugin Gradle tambahan
+- Tim kamu lebih nyaman dengan Kotlin DSL daripada banyak anotasi
 
 ---
 
-## Lazy vs Eager Injection
+## Ringkasan Padanan Keyword
 
-Koin mendukung dua mode pengambilan dependensi:
-
-| Mode      | Sintaks       | Kapan digunakan                                                     |
-| --------- | ------------- | ------------------------------------------------------------------- |
-| **Lazy**  | `by inject()` | Sebagian besar kasus — dependensi diambil saat pertama kali diakses |
-| **Eager** | `get()`       | Ketika dependensi harus tersedia segera, bukan secara lazy          |
-
-Contoh:
-
-```kotlin
-class ExampleActivity : AppCompatActivity() {
-
-    // Lazy — diambil saat pertama kali diakses
-    private val analytics: AnalyticsAdapter by inject()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // Eager — diambil langsung saat onCreate dipanggil
-        val config: AppConfig = get()
-    }
-}
-```
-
----
-
-## Verifikasi Modul (Opsional tapi Disarankan)
-
-Koin menyediakan mekanisme untuk memverifikasi bahwa semua dependensi yang didefinisikan di modul dapat dipenuhi, tanpa harus menjalankan aplikasi:
-
-```kotlin
-class KoinModuleTest : KoinTest {
-
-    @Test
-    fun verifyKoinModules() {
-        koinApplication {
-            androidContext(mockk<Application>())
-            modules(analyticsModule, networkModule, appModule)
-        }.checkModules()
-    }
-}
-```
-
-Ini setara dengan pemeriksaan grafik dependensi yang dilakukan Dagger/Hilt pada waktu kompilasi, namun dilakukan Koin pada waktu testing.
-
-> **Catatan:** Tambahkan dependensi testing berikut untuk menggunakan `checkModules()`:
->
-> ```kotlin
-> testImplementation("io.insert-koin:koin-test:4.0.0")
-> testImplementation("io.insert-koin:koin-test-junit4:4.0.0")
-> ```
-
----
-
-## Ringkasan: Perbandingan Keyword Koin
-
-| Keyword            | Deskripsi                           | Setara Hilt                               |
-| ------------------ | ----------------------------------- | ----------------------------------------- |
-| `single { }`       | Instance tunggal (singleton)        | `@Singleton` + `@Provides`/`@Binds`       |
-| `factory { }`      | Instance baru setiap kali diminta   | `@Provides` tanpa scope                   |
-| `viewModel { }`    | ViewModel yang sadar siklus hidup   | `@HiltViewModel`                          |
-| `scoped { }`       | Instance hidup selama scope aktif   | `@ActivityScoped`, `@FragmentScoped`, dll |
-| `get()`            | Mengambil dependensi lain dari Koin | Ditangani otomatis oleh Hilt              |
-| `named("x")`       | Qualifier untuk membedakan binding  | `@Qualifier` custom annotation            |
-| `bind`             | Mengikat implementasi ke interface  | `@Binds`                                  |
-| `androidContext()` | Mengambil Application Context       | `@ApplicationContext`                     |
-| `by inject()`      | Lazy injection di kelas Android     | `@Inject lateinit var`                    |
-| `by viewModel()`   | Lazy ViewModel injection            | `@Inject` + `ViewModelProvider`           |
-
----
-
-## Koin dan Kotlin Multiplatform
-
-Salah satu keunggulan Koin dibanding Hilt adalah dukungan untuk **Kotlin Multiplatform (KMP)**. Koin menyediakan modul `koin-core` yang dapat digunakan di luar Android — termasuk iOS (via Kotlin/Native), desktop (Kotlin/JVM), dan web (Kotlin/JS):
-
-```kotlin
-// shared/src/commonMain/kotlin/AppModule.kt
-val sharedModule = module {
-    single { UserRepository(get()) }
-    single { ApiClient() }
-}
-
-// Android-specific
-val androidModule = module {
-    single { AndroidAnalyticsService(androidContext()) }
-}
-
-// iOS-specific (via Kotlin/Native)
-val iosModule = module {
-    single { IosAnalyticsService() }
-}
-```
-
-> Hilt hanya mendukung Android. Jika Anda berencana mengembangkan aplikasi multiplatform, Koin adalah pilihan yang jauh lebih fleksibel.
+| Konsep                                  | Hilt                                 | Koin                                |
+| --------------------------------------- | ------------------------------------ | ----------------------------------- |
+| Inisialisasi                            | `@HiltAndroidApp` di Application     | `startKoin { }` di Application      |
+| Aktifkan injection di Activity/Fragment | `@AndroidEntryPoint`                 | Tidak perlu anotasi                 |
+| Inject field                            | `@Inject lateinit var`               | `by inject()`                       |
+| Singleton                               | `@Singleton` + `@Provides`           | `single { }`                        |
+| Instance baru setiap request            | `@Provides` tanpa scope              | `factory { }`                       |
+| ViewModel                               | `@HiltViewModel` + `by viewModels()` | `viewModel { }` + `by viewModel()`  |
+| Ambil dependensi lain                   | Ditangani otomatis oleh Hilt         | `get()`                             |
+| Beberapa binding tipe sama              | Custom `@Qualifier` annotation       | `named("nama")`                     |
+| Binding interface                       | `@Binds`                             | `single<Interface> { Impl(get()) }` |
+| Context aplikasi                        | `@ApplicationContext`                | `androidContext()`                  |

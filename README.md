@@ -11,7 +11,7 @@
 7. [State Management dan View Model](./week-07/materi.md)
 8. Responsi 1
 9. [Data Persistence 1](./week-08/materi.md)
-10. [Dependency Injection Menggunakan Koin](./week-10/materi.md)
+10. [Dependency Injection dan App Architecture](./week-10/materi.md)
 11. [HTTP Request dan OpenAPI Generator](./week-11/materi.md)
 12. [Data Persistence 2](./week-12/materi.md)
 13. [Work Manager + CI/CD](./week-13/materi.md)
