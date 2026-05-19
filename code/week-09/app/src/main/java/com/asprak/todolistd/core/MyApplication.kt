@@ -7,7 +7,9 @@ import com.asprak.todolistd.feature.setting.data.ThemeRepository
 import com.asprak.todolistd.feature.todo.data.TodoRepository
 
 class MyApplication : Application() {
-    val themeRepository = ThemeRepository()
+    lateinit var themeRepository: ThemeRepository
+        private set
+
     lateinit var authRepository: AuthRepository
         private set
 
@@ -20,6 +22,7 @@ class MyApplication : Application() {
     override fun onCreate() {
         super.onCreate()
 
+        themeRepository = ThemeRepository(this)
         authRepository = AuthRepository(this)
         todoRepository = TodoRepository(this)
         categoryRepository = CategoryRepository(

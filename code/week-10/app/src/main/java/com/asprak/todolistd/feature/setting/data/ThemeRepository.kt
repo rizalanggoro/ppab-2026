@@ -5,9 +5,13 @@ import androidx.core.content.edit
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import javax.inject.Inject
+import javax.inject.Singleton
+import dagger.hilt.android.qualifiers.ApplicationContext
 
-class ThemeRepository(
-    context: Context,
+@Singleton
+class ThemeRepository @Inject constructor(
+    @ApplicationContext context: Context,
 ) {
     companion object {
         private const val PREF_NAME = "theme_prefs"
