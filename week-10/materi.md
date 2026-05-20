@@ -4,7 +4,7 @@
 
 Sebelum masuk ke Hilt dan Koin, kita perlu paham dulu masalah yang ingin diselesaikan.
 
-Bayangkan kamu punya aplikasi sederhana. Ada kelas `UserRepository` yang butuh `ApiService` untuk mengambil data dari internet, dan `ApiService` itu butuh `OkHttpClient` agar bisa terkoneksi ke jaringan.
+Jika kalian punya aplikasi sederhana. Ada kelas `UserRepository` yang butuh `ApiService` untuk mengambil data dari internet, dan `ApiService` itu butuh `OkHttpClient` agar bisa terkoneksi ke jaringan.
 
 Tanpa DI, kamu harus menulis kode seperti ini di setiap Activity yang membutuhkannya:
 
@@ -22,11 +22,11 @@ class HomeActivity : AppCompatActivity() {
 }
 ```
 
-Sekarang bayangkan kamu punya 10 Activity yang semuanya butuh `UserRepository`. Kamu harus menulis tiga baris "rakitan" itu di setiap Activity. Kalau suatu hari `OkHttpClient` butuh parameter tambahan, kamu harus ubah di 10 tempat sekaligus. Ini yang disebut kode duplikat, dan itu masalah besar di proyek nyata.
+Sekarang kalau ada 10 Activity yang semuanya butuh `UserRepository`. Berarti harus menulis semua baris diatas di setiap activity. Kalau suatu hari `OkHttpClient` butuh parameter tambahan, harus merubah di 10 tempat sekaligus dan akhirnya akan ribet. Ini yang disebut kode duplikat, dan itu masalah besar.
 
 **Intinya: DI adalah teknik di mana objek tidak membuat dependensinya sendiri, tapi menerima dependensi dari luar. Kamu bilang "saya butuh ini", sistem DI yang mengurus selebihnya.**
 
-Di dunia Android ada dua library DI yang paling populer: **Hilt** (dari Google) dan **Koin** (dari komunitas open source). Keduanya menyelesaikan masalah yang sama, tapi dengan pendekatan yang berbeda.
+Di dunia Android ada dua library DI yang paling populer: **Hilt** (dari Google) dan **Koin** (dari komunitas open source). Keduanya menyelesaikan masalah yang sama, tapi dengan pendekatan yang berbeda. Untuk praktikum kali ini kalian bebas mau pilih yang mana. Tapi penjelasan code nya akan menggunakan library **Hilt**.
 
 ---
 
@@ -63,8 +63,9 @@ plugins {
 }
 
 dependencies {
-    implementation("com.google.dagger:hilt-android:2.56.2")
-    ksp("com.google.dagger:hilt-android-compiler:2.56.2")
+    implementation("com.google.dagger:hilt-android:2.59.2")
+    ksp("com.google.dagger:hilt-android-compiler:2.59.2")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 }
 ```
 
@@ -73,8 +74,8 @@ dependencies {
 ```kotlin
 android {
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 ```
@@ -112,14 +113,22 @@ Untuk bisa menerima injeksi di Activity, tambahkan anotasi `@AndroidEntryPoint`:
 
 ```kotlin
 @AndroidEntryPoint
-class HomeActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
+    @Inject
+    lateinit var themeRepository: ThemeRepository
 
-    @Inject lateinit var userRepository: UserRepository
+    @Inject
+    lateinit var authRepository: AuthRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // userRepository sudah siap dipakai di sini
-        userRepository.getUsers()
+        enableEdgeToEdge()
+        setContent {
+            ComposeApp(
+                themeRepository = themeRepository,
+                authRepository = authRepository,
+            )
+        }
     }
 }
 ```
@@ -148,23 +157,28 @@ class HomeFragment : Fragment() {
 
 Hilt perlu tahu cara membuat objek yang akan diinjeksikan. Ada tiga cara utama.
 
+Gini:
+
+---
+
 ### Cara 1 — Constructor Injection
 
-Cara paling sederhana: tambahkan `@Inject constructor` pada kelas yang ingin kamu buat:
+Tambahkan `@Inject constructor` pada kelas yang ingin dikelola Hilt:
 
 ```kotlin
-class UserRepository @Inject constructor(
-    private val apiService: ApiService
-) {
-    fun getUsers() = apiService.fetchUsers()
-}
+@Singleton
+class AuthRepository @Inject constructor(
+    @ApplicationContext context: Context,
+) { ... }
 ```
 
-Dengan ini, Hilt tahu: "kalau ada yang minta `UserRepository`, buat pakai constructor ini, dan untuk `ApiService`-nya cari sendiri dari yang sudah terdaftar."
+Hilt akan otomatis membuat `AuthRepository` dan menyuntikkan `Context` aplikasi ke constructornya. Context ini digunakan AuthRepository untuk mengakses `SharedPreferences` — tempat data users dan session disimpan secara lokal.
 
 ### Cara 2 — Module dengan @Provides
 
 Cara ini dipakai ketika kamu **tidak bisa** menambahkan `@Inject constructor` — misalnya untuk kelas dari library eksternal seperti Retrofit atau OkHttpClient. Kamu tidak bisa ubah kode library orang lain, jadi kamu buat modul yang menjelaskan cara membuatnya:
+
+**Belum ada implementasi di Codenya**
 
 ```kotlin
 @Module
@@ -202,6 +216,8 @@ Penjelasan anotasi:
 ### Cara 3 — @Binds untuk Interface
 
 Kalau kamu punya interface dan ingin memberitahu Hilt implementasi mana yang dipakai:
+
+**Belum ada implementasi di Codenya**
 
 ```kotlin
 interface UserRepository {
@@ -255,30 +271,31 @@ class AnalyticsTracker @Inject constructor() { ... }
 
 ## Inject ViewModel dengan Hilt
 
+Untuk ViewModel, Hilt menggunakan anotasi `@HiltViewModel` agar Hilt tahu bahwa kelas ini adalah ViewModel yang perlu dikelola.
+
+Contoh pada kode `CategoryViewModel`:
+
 ```kotlin
-// Di ViewModel
 @HiltViewModel
-class HomeViewModel @Inject constructor(
-    private val userRepository: UserRepository
-) : ViewModel() {
-
-    fun loadUsers() = userRepository.getUsers()
-}
+class CategoryViewModel @Inject constructor(
+    private val authRepository: AuthRepository,
+    private val categoryRepository: CategoryRepository,
+) : ViewModel() { ... }
 ```
+
+`CategoryViewModel` membutuhkan dua dependensi — `AuthRepository` dan `CategoryRepository`. Keduanya tidak dibuat manual di dalam ViewModel, melainkan Hilt yang menyiapkan dan menyuntikkannya lewat constructor secara otomatis.
+
+Lalu untuk memakainya di Activity atau Fragment, cukup gunakan delegasi `by viewModels()`:
 
 ```kotlin
-// Di Activity
 @AndroidEntryPoint
-class HomeActivity : AppCompatActivity() {
+class CategoryFragment : Fragment() {
 
-    private val viewModel: HomeViewModel by viewModels()
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel.loadUsers()
-    }
+    private val viewModel: CategoryViewModel by viewModels()
 }
 ```
+
+Tidak perlu membuat `CategoryViewModel` secara manual. Hilt yang mengurus pembuatannya beserta semua dependensi yang dibutuhkan di dalamnya.
 
 ---
 
