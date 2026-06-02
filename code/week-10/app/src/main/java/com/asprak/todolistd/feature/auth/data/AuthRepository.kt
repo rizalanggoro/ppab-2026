@@ -4,12 +4,12 @@ import android.content.Context
 import androidx.core.content.edit
 import com.asprak.todolistd.domain.Session
 import com.asprak.todolistd.domain.User
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
 import javax.inject.Singleton
-import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Singleton
 class AuthRepository @Inject constructor(
