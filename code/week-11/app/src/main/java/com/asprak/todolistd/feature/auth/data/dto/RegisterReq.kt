@@ -1,3 +1,10 @@
 package com.asprak.todolistd.feature.auth.data.dto
 
-data class RegisterReq()
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RegisterReq(
+    val name: String,
+    val email: String,
+    val password: String
+)

@@ -1,3 +1,8 @@
 package com.asprak.todolistd.feature.auth.data.dto
 
-data class RegisterRes()
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class RegisterRes(
+    val token: String
+)

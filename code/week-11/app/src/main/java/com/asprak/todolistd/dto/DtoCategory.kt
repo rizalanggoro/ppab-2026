@@ -1,3 +1,9 @@
 package com.asprak.todolistd.dto
 
-data class DtoCategory()
+import com.asprak.todolistd.domain.Category
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class DtoCategory(
+    val data: Category
+)

@@ -1,0 +1,247 @@
+basePath: /
+definitions:
+  Category:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    required:
+    - created_at
+    - id
+    - name
+    - updated_at
+    - user_id
+    type: object
+  CategoryDTO:
+    properties:
+      data:
+        $ref: '#/definitions/Category'
+    required:
+    - data
+    type: object
+  CreateCategoryReq:
+    properties:
+      name:
+        type: string
+    required:
+    - name
+    type: object
+  CreateCategoryRes:
+    properties:
+      item:
+        $ref: '#/definitions/CategoryDTO'
+    required:
+    - item
+    type: object
+  DeleteCategoryRes:
+    properties:
+      message:
+        type: string
+    required:
+    - message
+    type: object
+  ErrorDTO:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    required:
+    - code
+    - message
+    type: object
+  GetAllCategoriesRes:
+    properties:
+      items:
+        items:
+          $ref: '#/definitions/CategoryDTO'
+        type: array
+    required:
+    - items
+    type: object
+  LoginReq:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  LoginRes:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+  RegisterReq:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  RegisterRes:
+    properties:
+      token:
+        type: string
+    required:
+    - token
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  title: asprak todo api
+  version: "1.0"
+paths:
+  /api/auth/login:
+    post:
+      consumes:
+      - application/json
+      operationId: login
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/LoginReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/LoginRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorDTO'
+      tags:
+      - auth
+  /api/auth/register:
+    post:
+      consumes:
+      - application/json
+      operationId: register
+      parameters:
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/RegisterReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/RegisterRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorDTO'
+      tags:
+      - auth
+  /api/categories:
+    get:
+      consumes:
+      - application/json
+      operationId: getAll
+      parameters:
+      - description: authorization
+        in: header
+        name: authorization
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/GetAllCategoriesRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorDTO'
+      tags:
+      - category
+    post:
+      consumes:
+      - application/json
+      operationId: create
+      parameters:
+      - description: authorization
+        in: header
+        name: authorization
+        required: true
+        type: string
+      - description: body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/CreateCategoryReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/CreateCategoryRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorDTO'
+      tags:
+      - category
+  /api/categories/{id}:
+    delete:
+      consumes:
+      - application/json
+      operationId: delete
+      parameters:
+      - description: authorization
+        in: header
+        name: authorization
+        required: true
+        type: string
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/DeleteCategoryRes'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/ErrorDTO'
+      tags:
+      - category
+schemes:
+- http
+- https
+swagger: "2.0"

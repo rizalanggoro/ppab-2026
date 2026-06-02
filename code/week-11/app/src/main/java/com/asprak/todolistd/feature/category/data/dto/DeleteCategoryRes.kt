@@ -1,3 +1,8 @@
 package com.asprak.todolistd.feature.category.data.dto
 
-data class DeleteCategoryRes()
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class DeleteCategoryRes(
+    val message: String,
+)

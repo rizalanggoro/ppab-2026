@@ -1,3 +1,8 @@
 package com.asprak.todolistd.feature.category.data.dto
 
-data class CreateCategoryReq()
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class CreateCategoryReq(
+    val name: String,
+)
