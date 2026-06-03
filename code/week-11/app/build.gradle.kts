@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
@@ -29,7 +31,28 @@ android {
     }
 
     buildTypes {
+        // week 11
+        val properties = Properties()
+        properties.load(rootProject.file(".env").inputStream())
+
+        debug {
+            // week 11
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                properties.getProperty("BASE_URL")
+            )
+        }
+
+
         release {
+            // week 11
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                properties.getProperty("BASE_URL")
+            )
+
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -45,6 +68,9 @@ android {
     }
     buildFeatures {
         compose = true
+
+        // week 11
+        buildConfig = true
     }
 }
 
@@ -77,9 +103,9 @@ dependencies {
     implementation(libs.kotlinx.serialization.json)
 
     // hilt dagger - week 10
-    implementation("com.google.dagger:hilt-android:2.59.2")
-    ksp("com.google.dagger:hilt-android-compiler:2.59.2")
-    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+    implementation(libs.hilt.android)
+    ksp(libs.hilt.android.compiler)
+    implementation(libs.androidx.hilt.navigation.compose)
 
     // retrofit - week 11
     implementation(libs.retrofit)
