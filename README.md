@@ -14,7 +14,7 @@
 10. [Dependency Injection dan App Architecture](./week-10/materi.md)
 11. [HTTP Request](./week-11/materi.md)
 12. [Data Persistence 2](./week-12/materi.md)
-13. [Work Manager + CI/CD](./week-13/materi.md)
+13. [Work Manager](./week-13/materi.md)
 14. Responsi 2
 
 ### Kontrak Praktikum
